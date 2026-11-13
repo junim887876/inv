@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Solar Invest Socio</title>
+
+    <!-- OneSignal Push Notifications -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "223da57c-6515-4bb2-b05e-b39991785493",
+          serviceWorkerPath: "sw.js",
+          serviceWorkerParam: { scope: "/" },
+        });
+      });
+    </script>
+
+    <!-- Configurações PWA -->
+    <link rel="manifest" href="./manifest.json?v=2">
+    <meta name="theme-color" content="#050814">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SolarInvest">
+    <link rel="apple-touch-icon" href="logo.jpg?v=2">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Inter Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Three.js, GLTFLoader e OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'] },
+                    colors: {
+                        'solar-bg': '#050814',
+                        'solar-neon': '#39ff4d',
+                        'solar-gold': '#fbbf24'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; box-sizing: border-box; }
+        html, body { 
+            touch-action: manipulation; 
+            min-height: 100%; 
+            background-color: #050814; 
+            color: #ffffff; 
+            overflow-x: hidden; 
+        }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050814; }
+        ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 99px; }
+
+        /* Fundo atmosférico com feixes de luz azul e verde */
+        .page-ambient-bg {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 12% 18%, rgba(245, 158, 11, 0.14) 0%, transparent 42%),
+                radial-gradient(circle at 88% 22%, rgba(14, 165, 233, 0.22) 0%, transparent 48%),
+                radial-gradient(circle at 50% 38%, rgba(16, 185, 129, 0.12) 0%, transparent 55%),
+                linear-gradient(180deg, #090e24 0%, #050814 55%, #040711 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Feixe luminoso lateral direito */
+        .neon-slash-right {
+            position: fixed;
+            top: 8%;
+            right: -60px;
+            width: 340px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #38bdf8, #60a5fa);
+            box-shadow: 0 0 24px #38bdf8, 0 0 48px #2563eb;
+            transform: rotate(-48deg);
+            opacity: 0.7;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Linha luminosa na base da página */
+        .bottom-neon-line {
+            height: 2px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent 0%, #22c55e 25%, #39ff4d 50%, #0ea5e9 75%, transparent 100%);
+            box-shadow: 0 -2px 20px rgba(57, 255, 77, 0.45);
+        }
+
+        #canvas-container { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 290px; 
+            z-index: 1; 
+            pointer-events: auto;
+            opacity: 0.55;
+            mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+        }
+
+        /* Hero Card de Lucro com borda luminosa degradê */
+        .hero-profit-box {
+            position: relative;
+            border-radius: 26px;
+            background: linear-gradient(135deg, rgba(22, 32, 58, 0.85) 0%, rgba(11, 18, 36, 0.92) 55%, rgba(12, 38, 34, 0.88) 100%);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 
+                0 22px 50px rgba(0, 0, 0, 0.65),
+                0 0 38px rgba(57, 255, 77, 0.16),
+                inset 0 1px 1px rgba(255, 255, 255, 0.18);
+        }
+        .hero-profit-box::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 26px;
+            padding: 1.5px;
+            background: linear-gradient(125deg, rgba(148, 163, 184, 0.45), rgba(56, 189, 248, 0.35), rgba(57, 255, 77, 0.75));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* Ícone circular do raio verde no Hero */
+        .bolt-orb {
+            background: radial-gradient(circle at 35% 30%, rgba(57, 255, 77, 0.25), rgba(16, 185, 129, 0.06));
+            border: 1.5px solid rgba(57, 255, 77, 0.65);
+            box-shadow: 0 0 28px rgba(57, 255, 77, 0.35), inset 0 0 16px rgba(57, 255, 77, 0.2);
+        }
+
+        /* Card de Cliente Dark Glass */
+        .client-dark-card {
+            position: relative;
+            background: linear-gradient(180deg, rgba(19, 28, 52, 0.92) 0%, rgba(11, 17, 34, 0.96) 100%);
+            border-radius: 22px;
+            border: 1px solid rgba(96, 165, 250, 0.24);
+            box-shadow: 
+                0 14px 32px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+        .client-dark-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.55);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.65),
+                0 0 24px rgba(56, 189, 248, 0.14);
+        }
+
+        /* Caixa interna de Lucro Usina */
+        .inner-profit-panel {
+            background: linear-gradient(180deg, rgba(28, 40, 72, 0.65) 0%, rgba(18, 27, 50, 0.8) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 14px;
+            padding: 10px 12px;
+        }
+
+        /* Glass Pills do Topo */
+        .top-glass-pill {
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .fade-in-up { 
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+            opacity: 0; 
+            transform: translateY(14px); 
+        }
+        @keyframes fadeInUp { 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Modais */
+        .modal-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(3, 6, 16, 0.82); 
+            backdrop-filter: blur(14px); 
+            -webkit-backdrop-filter: blur(14px); 
+            z-index: 1000; 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 0.35s ease; 
+        }
+        .bottom-sheet { 
+            position: fixed; 
+            bottom: 0; 
+            left: 50%; 
+            transform: translate(-50%, 100%);
+            width: 100%; 
+            max-width: 520px; 
+            background: linear-gradient(180deg, #131c36 0%, #0b1022 100%); 
+            color: #ffffff; 
+            border-top-left-radius: 28px; 
+            border-top-right-radius: 28px; 
+            padding: 20px 24px 38px; 
+            z-index: 1001; 
+            border-top: 1px solid rgba(96, 165, 250, 0.3); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            max-height: 88vh; 
+            overflow-y: auto; 
+            box-shadow: 0 -14px 50px rgba(0,0,0,0.85); 
+        }
+        .modal-pill { 
+            width: 42px; 
+            height: 4px; 
+            background: rgba(255,255,255,0.22); 
+            border-radius: 99px; 
+            margin: 0 auto 20px; 
+        }
+    </style>
+</head>
+<body class="bg-solar-bg min-h-screen font-sans selection:bg-solar-neon selection:text-slate-950 flex flex-col justify-between">
+
+    <div class="page-ambient-bg"></div>
+    <div class="neon-slash-right"></div>
+
+    <!-- Loading Screen com Vídeo -->
+    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#050814] flex items-center justify-center transition-opacity duration-700 overflow-hidden">
+        <video id="loading-video" autoplay muted playsinline preload="auto" class="w-full h-full object-cover">
+            <source src="Improve_video_quality_20261008170930.mp4" type="video/mp4">
+            Seu navegador não suporta reprodução de vídeos.
+        </video>
+    </div>
+
+    <!-- Canvas 3D -->
+    <div id="canvas-container"></div>
+
+    <!-- Dashboard Principal -->
+    <div id="admin-dashboard" class="relative z-10 w-full flex-1 flex flex-col">
+        
+        <!-- BARRA SUPERIOR: LOGO SOLARINVEST + SELETOR DE MÊS -->
+        <header class="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+            <!-- Logotipo SolarInvest -->
+            <div class="flex items-center gap-3 select-none">
+                <svg class="w-12 h-11 flex-shrink-0 drop-shadow-[0_0_12px_rgba(251,191,36,0.45)]" viewBox="0 0 64 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Raios do Sol -->
+                    <g stroke="#FBBF24" stroke-width="2.2" stroke-linecap="round">
+                        <line x1="26" y1="4" x2="26" y2="10"/>
+                        <line x1="12" y1="9" x2="16" y2="14"/>
+                        <line x1="40" y1="9" x2="36" y2="14"/>
+                        <line x1="5" y1="21" x2="11" y2="23"/>
+                        <line x1="47" y1="21" x2="41" y2="23"/>
+                        <line x1="4" y1="33" x2="10" y2="32"/>
+                    </g>
+                    <!-- Sol Dourado -->
+                    <path d="M13 33C13 24.7157 19.268 18 27 18C34.732 18 41 24.7157 41 33H13Z" fill="url(#sunGrad)"/>
+                    <!-- Painel Solar Azul -->
+                    <path d="M18 32L47 26L56 44L23 48L18 32Z" fill="url(#panelGrad)" stroke="#93C5FD" stroke-width="1.5" stroke-linejoin="round"/>
+                    <!-- Grade do Painel -->
+                    <line x1="27.5" y1="30" x2="33.5" y2="46.5" stroke="#BAE6FD" stroke-width="1.2"/>
+                    <line x1="37.5" y1="28" x2="44.5" y2="45.2" stroke="#BAE6FD" stroke-width="1.2"/>
+                    <line x1="20.5" y1="39.5" x2="51.2" y2="34.5" stroke="#BAE6FD" stroke-width="1.2"/>
+                    <!-- Base verde -->
+                    <path d="M12 49C24 46 42 46 58 49" stroke="#39FF4D" stroke-width="2.2" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="sunGrad" x1="27" y1="18" x2="27" y2="33" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#FDE047"/>
+                            <stop offset="1" stop-color="#F59E0B"/>
+                        </linearGradient>
+                        <linearGradient id="panelGrad" x1="20" y1="26" x2="52" y2="48" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#2563EB"/>
+                            <stop offset="1" stop-color="#0F172A"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div>
+                    <div class="text-xl sm:text-2xl font-black tracking-tight leading-none">
+                        <span class="text-white">SOLAR</span><span class="text-amber-400">INVEST</span>
+                    </div>
+                    <p class="text-[9px] sm:text-[10px] font-semibold tracking-[0.22em] text-slate-300 uppercase mt-1">
+                        ENERGIA QUE GERA ECONOMIA
+                    </p>
+                </div>
+            </div>
+
+            <!-- Controles Superiores: Seletor de Mês + Botão Config -->
+            <div class="flex items-center gap-2.5">
+                <div class="top-glass-pill rounded-2xl px-4 py-2 flex items-center gap-3 cursor-pointer hover:border-sky-400/40 transition-colors">
+                    <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-200">
+                        <i class="fa-regular fa-calendar text-sm"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="block text-[10px] font-medium text-slate-400 leading-tight">Lucro Total do Mês</span>
+                        <div class="flex items-center gap-1.5">
+                            <select id="month-filter" class="bg-transparent text-white font-extrabold text-sm capitalize cursor-pointer focus:outline-none pr-1" onchange="filterDataByMonth()">
+                            </select>
+                            <i class="fa-solid fa-chevron-down text-slate-300 text-[10px] pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="openConfigModal()" title="Configurar Planilha" class="top-glass-pill w-11 h-11 rounded-full flex items-center justify-center text-white hover:border-sky-400/50 hover:text-solar-neon transition-all active:scale-90">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- HERO CARD DE LUCRO TOTAL -->
+        <section class="w-full max-w-3xl mx-auto px-4 sm:px-6 mt-2 mb-8">
+            <div class="hero-profit-box px-5 py-6 sm:px-9 sm:py-7 flex items-center justify-between gap-4">
+                
+                <!-- Esquerda: Orbe com Raio Verde -->
+                <div class="bolt-orb w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-bolt text-2xl sm:text-3xl text-solar-neon drop-shadow-[0_0_10px_rgba(57,255,77,0.8)]"></i>
+                </div>
+
+                <!-- Centro: Título + Valor Gigante + Pílula -->
+                <div class="flex-1 text-center min-w-0">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-[0.14em] text-slate-200 mb-1">
+                        <i class="fa-solid fa-arrow-trend-up text-solar-neon"></i>
+                        <span id="hero-month-title">LUCRO TOTAL DO PERÍODO</span>
+                    </div>
+
+                    <div class="my-1 flex items-baseline justify-center gap-1.5 sm:gap-2">
+                        <span class="text-2xl sm:text-4xl font-extrabold text-slate-100">R$</span>
+                        <span id="total-revenue-display" class="tabular-nums text-4xl sm:text-6xl font-black text-solar-neon tracking-tight drop-shadow-[0_0_22px_rgba(57,255,77,0.35)]">
+                            0,00
+                        </span>
+                    </div>
+
+                    <div class="mt-2.5 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.06] border border-white/10 text-[11px] sm:text-xs text-slate-200 font-medium">
+                        <span class="w-4 h-4 rounded-full bg-solar-neon text-slate-950 flex items-center justify-center text-[9px] font-black">
+                            <i class="fa-solid fa-check"></i>
+                        </span>
+                        <span id="month-subtitle-display">Lucro Líquido da Usina no Período Selecionado</span>
+                    </div>
+                </div>
+
+                <!-- Direita: Gráfico de Barras Crescentes SVG -->
+                <div class="hidden sm:flex items-center justify-center flex-shrink-0 w-24 h-20">
+                    <svg viewBox="0 0 110 80" class="w-full h-full drop-shadow-[0_0_12px_rgba(57,255,77,0.45)]" fill="none">
+                        <defs>
+                            <linearGradient id="barGreen" x1="0" y1="80" x2="0" y2="10" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#059669" stop-opacity="0.25"/>
+                                <stop offset="1" stop-color="#39FF4D"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="8" y="54" width="12" height="20" rx="2" fill="url(#barGreen)"/>
+                        <rect x="26" y="45" width="12" height="29" rx="2" fill="url(#barGreen)"/>
+                        <rect x="44" y="36" width="12" height="38" rx="2" fill="url(#barGreen)"/>
+                        <rect x="62" y="26" width="12" height="48" rx="2" fill="url(#barGreen)"/>
+                        <rect x="80" y="16" width="12" height="58" rx="2" fill="url(#barGreen)"/>
+                        <!-- Seta ascendente -->
+                        <path d="M10 48C34 42 62 28 94 8" stroke="#6EE7B7" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M84 7H96V19" stroke="#6EE7B7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- BARRA CLIENTES AUTORIZADOS + BUSCA -->
+        <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 pb-12">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-users text-sky-400 text-lg drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]"></i>
+                    <h2 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">Clientes Autorizados</h2>
+                    <span id="cards-count-badge" class="tabular-nums text-[11px] font-bold bg-white/10 text-slate-300 px-2.5 py-0.5 rounded-full border border-white/10">0</span>
+                </div>
+
+                <!-- Campo de Busca -->
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input 
+                        type="text" 
+                        id="search-client-input" 
+                        oninput="renderDashboard()" 
+                        placeholder="Buscar cliente..." 
+                        class="w-full bg-white/[0.06] border border-white/15 rounded-full pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-400/60 transition-colors"
+                    >
+                </div>
+            </div>
+
+            <!-- GRADE DE CARDS DOS CLIENTES -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="cards-container">
+            </div>
+        </main>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="relative z-10 w-full mt-auto">
+        <div class="bottom-neon-line"></div>
+        <div class="py-4 px-4 text-center flex items-center justify-center gap-2 text-[10px] sm:text-[11px] font-bold tracking-[0.2em] text-slate-300 uppercase">
+            <i class="fa-solid fa-leaf text-solar-neon text-xs"></i>
+            <span>SOLARINVEST <span class="mx-1.5 text-slate-500">•</span> MAIS ECONOMIA <span class="mx-1.5 text-slate-500">•</span> UM FUTURO SUSTENTÁVEL</span>
+        </div>
+    </footer>
+
+    <!-- MODAL DE CONFIGURAÇÃO DA PLANILHA -->
+    <div class="modal-overlay" id="config-overlay" onclick="closeConfigModal()"></div>
+    <div class="bottom-sheet" id="config-sheet">
+        <div class="modal-pill"></div>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-extrabold text-white">Configurar Planilha</h3>
+            <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <p class="text-xs text-slate-400 mb-4">Link ou ID da planilha do Google Sheets vinculada ao sistema.</p>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1.5">Link ou ID da Planilha</label>
+                <input type="text" id="input-sheet-id" placeholder="Cole o Link ou ID aqui..." class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-solar-neon">
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="saveSheetConfig()" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs uppercase tracking-wider transition-colors">
+                    Salvar e Carregar
+                </button>
+                <button onclick="clearSheetConfig()" class="py-3 px-4 bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 font-bold rounded-xl text-xs uppercase transition-colors">
+                    Restaurar Padrão
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'solarinvest_sheet_id';
+        const DEFAULT_SHEET_ID = '1IxzUCFbGIxOMrCGnjfHNlB16ll64TKh75SDOV1oOnWw';
+        const TARIFA_KWH = 0.81;
+        const CUSTO_KWH_USINA = 0.175126;
+
+        const ALLOWED_CLIENT_KEYS = ['adilson', 'joao', 'inquilino'];
+
+        const NATIVE_MONTHS = [
+            'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+        ];
+
+        const HEADER_WORDS = ['cliente', 'clientkey', 'nome', 'usuario', 'usuário', 'user', 'cip', 'consumo', 'mês', 'mes', 'status'];
+
+        // Paleta vibrante para os avatares circulares
+        const AVATAR_COLORS = [
+            'bg-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.5)]',
+            'bg-violet-600 text-white shadow-[0_0_12px_rgba(124,58,237,0.5)]',
+            'bg-teal-600 text-white shadow-[0_0_12px_rgba(13,148,136,0.5)]',
+            'bg-amber-500 text-white shadow-[0_0_12px_rgba(245,158,11,0.5)]',
+            'bg-emerald-600 text-white shadow-[0_0_12px_rgba(5,150,105,0.5)]',
+            'bg-purple-600 text-white shadow-[0_0_12px_rgba(147,51,234,0.5)]',
+            'bg-green-600 text-white shadow-[0_0_12px_rgba(22,163,74,0.5)]',
+            'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.5)]'
+        ];
+
+        let globalAllInvoices = [];
+        let globalAllClients = [];
+        let currentFilteredCards = [];
+
+        let loadDataError = null;
+
+        window.onload = () => {
+            startAppWithVideo();
+        };
+
+        function startAppWithVideo() {
+            const video = document.getElementById('loading-video');
+            
+            // Inicia o carregamento dos dados da planilha em segundo plano
+            const dataPromise = loadAdminData().catch(err => {
+                loadDataError = err;
+            });
+
+            // Função chamada unicamente quando o vídeo terminar
+            const finishIntro = async () => {
+                await dataPromise; // Aguarda a planilha terminar o carregamento
+
+                if (loadDataError) {
+                    showConfigScreen(loadDataError.message || 'Erro ao ler dados da planilha.');
+                } else {
+                    hideLoadingScreen();
+                }
+            };
+
+            if (video) {
+                // Tenta dar o play
+                video.play().catch(() => {});
+
+                // SÓ FINALIZA A TELA DE ENTRADA QUANDO O VÍDEO TERMINAR TOTALMENTE
+                video.onended = () => {
+                    finishIntro();
+                };
+
+                // Se houver erro de carregamento no arquivo do vídeo, aguarda e abre a tela
+                video.onerror = () => {
+                    finishIntro();
+                };
+            } else {
+                finishIntro();
+            }
+        }
+
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (!loadingScreen) return;
+            
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                initClean3DScene();
+            }, 600);
+        }
+
+        function getStoredSheetId() {
+            return localStorage.getItem(STORAGE_KEY) || DEFAULT_SHEET_ID;
+        }
+
+        function extractSheetId(input) {
+            if (!input) return '';
+            const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : input.trim();
+        }
+
+        function saveSheetConfig() {
+            const rawVal = document.getElementById('input-sheet-id').value;
+            const extracted = extractSheetId(rawVal);
+            if (!extracted) {
+                alert('Por favor, insira um ID ou Link válido.');
+                return;
+            }
+            localStorage.setItem(STORAGE_KEY, extracted);
+            closeConfigModal();
+            location.reload();
+        }
+
+        function clearSheetConfig() {
+            if (confirm('Deseja restaurar para o link de planilha padrão?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        function openConfigModal() {
+            document.getElementById('input-sheet-id').value = getStoredSheetId();
+            const overlay = document.getElementById('config-overlay');
+            const sheet = document.getElementById('config-sheet');
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                sheet.style.transform = 'translate(-50%, 0)';
+            }, 10);
+        }
+
+        function closeConfigModal() {
+            const overlay = document.getElementById('config-overlay');
+            const sheet = document.getElementById('config-sheet');
+            sheet.style.transform = 'translate(-50%, 100%)';
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 350);
+        }
+
+        function parseCSV(str) {
+            const arr = []; let quote = false; let row = [], col = '';
+            for (let c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                if (cc === '\r') continue; 
+                if (cc === '"' && quote && nc === '"') { col += cc; ++c; continue; }
+                if (cc === '"') { quote = !quote; continue; }
+                if (cc === ',' && !quote) { row.push(col.trim()); col = ''; continue; }
+                if (cc === '\n' && !quote) {
+                    if (col.trim() || row.length) { row.push(col.trim()); arr.push(row); }
+                    row = []; col = ''; continue;
+                }
+                col += cc;
+            }
+            if (col || row.length) { row.push(col.trim()); arr.push(row); }
+            return arr;
+        }
+
+        function safeParseFloat(val) {
+            if (!val) return 0;
+            if (typeof val === 'number') return val;
+            let str = val.toString().replace(/[R$\s]/g, '');
+            if (str.includes(',') && str.includes('.')) { str = str.replace(/\./g, '').replace(',', '.'); } 
+            else if (str.includes(',')) { str = str.replace(',', '.'); }
+            let num = parseFloat(str); return isNaN(num) ? 0 : num;
+        }
+
+        function normalizeClientKey(name) {
+            if (!name) return '';
+            return name.toLowerCase()
+                       .normalize("NFD")
+                       .replace(/[\u0300-\u036f]/g, "")
+                       .trim();
+        }
+
+        function isAllowedClient(name) {
+            const norm = normalizeClientKey(name);
+            return ALLOWED_CLIENT_KEYS.some(key => norm.includes(key));
+        }
+
+        async function fetchGoogleSheet(sheetName) {
+            const SHEET_ID = getStoredSheetId();
+            if(!SHEET_ID) throw new Error('NO_SHEET_ID');
+
+            const urls = [
+                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`,
+                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(sheetName)}`
+            ];
+
+            let lastError = null;
+            for (const url of urls) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const text = await response.text();
+                        if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                            throw new Error('PLANILHA_PRIVADA');
+                        }
+                        return parseCSV(text);
+                    }
+                } catch (e) {
+                    lastError = e;
+                }
+            }
+            throw lastError || new Error('Falha ao acessar planilha');
+        }
+
+        function showConfigScreen(msg) {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (!loadingScreen) return;
+            loadingScreen.innerHTML = `
+                <div class="text-center p-6 bg-[#111933] border border-sky-400/25 rounded-3xl max-w-sm mx-auto shadow-2xl relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-solar-neon flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                    </div>
+                    <h3 class="text-white font-extrabold text-lg mb-2">Atenção ao Carregar</h3>
+                    <p class="text-xs text-slate-300 mb-5 leading-relaxed font-normal">${msg}</p>
+                    <div class="space-y-2">
+                        <button onclick="openConfigModal()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-colors">Configurar Planilha</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadAdminData() {
+            let loginData = [];
+            try {
+                loginData = await fetchGoogleSheet('login');
+            } catch (e) {
+                if (e.message === 'PLANILHA_PRIVADA') {
+                    throw new Error('A sua planilha precisa estar pública ("Qualquer pessoa com o link").');
+                }
+                throw e;
+            }
+
+            const cipMap = {};
+            globalAllClients = [];
+
+            loginData.forEach(r => {
+                if(r[0] && r[0].trim()) {
+                    const clientName = r[0].trim();
+                    const normKey = normalizeClientKey(clientName);
+                    
+                    if (HEADER_WORDS.includes(normKey)) return;
+                    if (!isAllowedClient(clientName)) return;
+
+                    cipMap[normKey] = safeParseFloat(r[1]);
+                    if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
+                        globalAllClients.push(clientName);
+                    }
+                }
+            });
+
+            let invoicesData = [];
+            const possibleSheetNames = ['Form_Responses', 'Respostas ao formulário 1', 'Respostas do formulário 1', 'Respostas'];
+            
+            for (const sheetName of possibleSheetNames) {
+                try {
+                    const res = await fetchGoogleSheet(sheetName);
+                    if (res && res.length > 0) {
+                        invoicesData = res;
+                        break;
+                    }
+                } catch (e) {}
+            }
+
+            if (invoicesData.length > 0) {
+                invoicesData.shift();
+            }
+
+            globalAllInvoices = [];
+            const monthsArray = [];
+
+            for(let row of invoicesData) {
+                while(row.length < 7) row.push(""); 
+                const clienteNome = (row[2] ? row[2].trim() : "");
+                if(!clienteNome) continue;
+
+                const normKey = normalizeClientKey(clienteNome);
+                if (HEADER_WORDS.includes(normKey)) continue;
+                if (!isAllowedClient(clienteNome)) continue;
+
+                if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
+                    globalAllClients.push(clienteNome);
+                }
+
+                const consumoNum = safeParseFloat(row[1]);
+                const clientCip = cipMap[normKey] !== undefined ? cipMap[normKey] : 0;
+                
+                const custoKwhNum = consumoNum * TARIFA_KWH;
+                const valorBruto = custoKwhNum + clientCip;
+                
+                const faturamentoCalculado = valorBruto * 0.80; 
+                const custoProducaoKwh = consumoNum * CUSTO_KWH_USINA;
+                const custoTotalUsina = custoProducaoKwh + clientCip;
+                
+                const baseLucroLiquido = faturamentoCalculado - custoTotalUsina;
+
+                // APLICA A METADE (50%) PARA TODOS OS VALORES QUE VIEREM
+                const lucroLiquido = baseLucroLiquido * 0.50;
+
+                const mes = row[4] ? row[4].trim() : "Outro";
+                const statusStr = (row[6] ? row[6].toLowerCase() : "");
+                const isPaid = statusStr.includes('pago');
+
+                if(mes && !HEADER_WORDS.includes(mes.toLowerCase()) && !monthsArray.includes(mes)) {
+                    monthsArray.push(mes);
+                }
+
+                globalAllInvoices.push({
+                    cliente: clienteNome,
+                    normKey: normKey,
+                    consumoNum: consumoNum,
+                    consumo: consumoNum.toString(),
+                    lucroLiquidoNum: lucroLiquido,
+                    lucroStr: lucroLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                    mes: mes,
+                    status: isPaid ? 'pago' : 'pendente'
+                });
+            }
+
+            globalAllInvoices.reverse();
+
+            monthsArray.sort((a, b) => {
+                let idxA = NATIVE_MONTHS.findIndex(m => a.toLowerCase().includes(m));
+                let idxB = NATIVE_MONTHS.findIndex(m => b.toLowerCase().includes(m));
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                return 0;
+            });
+
+            const monthSelect = document.getElementById('month-filter');
+            monthSelect.innerHTML = '';
+            
+            monthsArray.forEach(m => {
+                const capMonth = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+                monthSelect.innerHTML += `<option value="${m}" class="bg-[#0b1022] text-white">${capMonth}</option>`;
+            });
+            monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0b1022] text-white">Todos os Meses</option>`;
+
+            const now = new Date();
+            const currentMonthNamePt = NATIVE_MONTHS[now.getMonth()];
+            
+            let matchedCurrentMonth = monthsArray.find(m => m.toLowerCase().includes(currentMonthNamePt));
+            
+            if (matchedCurrentMonth) {
+                monthSelect.value = matchedCurrentMonth;
+            } else if (monthsArray.length > 0) {
+                monthSelect.value = monthsArray[monthsArray.length - 1];
+            }
+
+            filterDataByMonth();
+        }
+
+        function filterDataByMonth() {
+            const selectedMonth = document.getElementById('month-filter').value;
+            currentFilteredCards = [];
+
+            if (selectedMonth === 'TODOS') {
+                document.getElementById('hero-month-title').innerText = 'LUCRO TOTAL ACUMULADO';
+                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido Acumulado da Usina';
+                globalAllInvoices.forEach(inv => {
+                    currentFilteredCards.push({ hasData: true, ...inv });
+                });
+            } else {
+                const capMonth = selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1).toLowerCase();
+                document.getElementById('hero-month-title').innerText = `LUCRO TOTAL DE ${selectedMonth.toUpperCase()}`;
+                document.getElementById('month-subtitle-display').innerText = `Lucro Líquido da Usina em ${capMonth}`;
+                
+                globalAllClients.forEach(clientName => {
+                    const normClientKey = normalizeClientKey(clientName);
+                    const matchedInvoice = globalAllInvoices.find(
+                        inv => inv.normKey === normClientKey && 
+                               inv.mes.toLowerCase() === selectedMonth.toLowerCase()
+                    );
+
+                    if (matchedInvoice) {
+                        currentFilteredCards.push({ hasData: true, ...matchedInvoice });
+                    } else {
+                        currentFilteredCards.push({
+                            hasData: false,
+                            cliente: clientName,
+                            normKey: normClientKey,
+                            consumo: '--',
+                            lucroLiquidoNum: 0,
+                            lucroStr: '--',
+                            mes: selectedMonth,
+                            status: 'sem_dados'
+                        });
+                    }
+                });
+            }
+
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const container = document.getElementById('cards-container');
+            const searchQuery = (document.getElementById('search-client-input')?.value || '').trim().toLowerCase();
+            container.innerHTML = '';
+
+            let totalLucroMes = 0;
+            currentFilteredCards.forEach(c => {
+                if(c.hasData) totalLucroMes += c.lucroLiquidoNum;
+            });
+
+            // Formata apenas os dígitos sem repetir "R$" porque o "R$" já está estilizado ao lado
+            const formattedValueOnly = totalLucroMes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('total-revenue-display').innerText = formattedValueOnly;
+
+            const visibleCards = currentFilteredCards
+                .map((item, originalIndex) => ({ item, originalIndex }))
+                .filter(({ item }) => !searchQuery || item.cliente.toLowerCase().includes(searchQuery));
+
+            document.getElementById('cards-count-badge').innerText = visibleCards.length;
+
+            if(visibleCards.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full p-10 text-center bg-white/[0.04] border border-white/10 rounded-3xl my-2">
+                        <i class="fa-solid fa-folder-open text-2xl text-slate-500 mb-3"></i>
+                        <p class="text-sm text-slate-300 font-medium">Nenhum registro encontrado para este período.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let cardsHtml = '';
+
+            visibleCards.forEach(({ item, originalIndex }, idx) => {
+                const initialLetter = (item.cliente.trim()[0] || 'C').toUpperCase();
+                const avatarStyle = AVATAR_COLORS[originalIndex % AVATAR_COLORS.length];
+
+                let statusPillHtml = '';
+                let subtextHtml = '';
+                let profitValueHtml = '';
+
+                if (item.hasData) {
+                    const isPaid = item.status === 'pago';
+                    if (isPaid) {
+                        statusPillHtml = `
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/40">
+                                <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center text-[8px] font-black">
+                                    <i class="fa-solid fa-check"></i>
+                                </span>
+                                Recebido
+                            </span>
+                        `;
+                    } else {
+                        statusPillHtml = `
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/40">
+                                <i class="fa-regular fa-clock text-[10px] text-amber-400"></i>
+                                Pendente
+                            </span>
+                        `;
+                    }
+
+                    subtextHtml = `
+                        <i class="fa-regular fa-calendar text-sky-400 text-xs w-3.5 text-center"></i>
+                        <span>Mês: <strong class="text-slate-100 font-semibold">${item.mes}</strong></span>
+                    `;
+
+                    profitValueHtml = `<div class="tabular-nums text-xl sm:text-2xl font-black text-solar-neon tracking-tight leading-tight">${item.lucroStr}</div>`;
+                } else {
+                    statusPillHtml = `
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-300 border border-sky-400/35">
+                            <i class="fa-solid fa-minus text-[9px] text-sky-400"></i>
+                            Sem Dados
+                        </span>
+                    `;
+
+                    subtextHtml = `
+                        <i class="fa-regular fa-calendar text-slate-400 text-xs w-3.5 text-center"></i>
+                        <span>Mês: <strong class="text-slate-300 font-semibold">${item.mes}</strong></span>
+                    `;
+
+                    profitValueHtml = `<div class="tabular-nums text-xl font-black text-solar-neon/60 tracking-tight leading-tight">--</div>`;
+                }
+
+                cardsHtml += `
+                    <div class="client-dark-card p-4 fade-in-up" style="animation-delay: ${idx * 0.03}s">
+                        <div>
+                            <!-- Topo: Avatar + Pílula de Status -->
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <div class="w-9 h-9 rounded-full ${avatarStyle} flex items-center justify-center font-extrabold text-sm flex-shrink-0">
+                                    ${initialLetter}
+                                </div>
+                                ${statusPillHtml}
+                            </div>
+
+                            <!-- Nome do Cliente -->
+                            <h3 class="text-lg font-extrabold text-white capitalize tracking-tight truncate mb-2" title="${item.cliente}">
+                                ${item.cliente}
+                            </h3>
+
+                            <!-- Mês -->
+                            <div class="space-y-1 text-xs text-slate-300 mb-3.5">
+                                <div class="flex items-center gap-2">
+                                    ${subtextHtml}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Caixa Interna: Ícone Painel + Lucro Usina -->
+                        <div class="inner-profit-panel flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center flex-shrink-0">
+                                <i class="fa-solid fa-solar-panel text-sky-400 text-base"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="block text-[11px] font-medium text-slate-300 leading-tight">Lucro Usina</span>
+                                ${profitValueHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = cardsHtml;
+        }
+
+        let scene, camera, renderer, controls;
+
+        function initClean3DScene() {
+            const container = document.getElementById('canvas-container');
+            if(container.children.length > 0) return; 
+
+            scene = new THREE.Scene();
+            const aspect = container.clientWidth / container.clientHeight;
+            
+            camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+            camera.position.set(0, 2.5, 12.0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2.1;
+            controls.minDistance = 6;
+            controls.maxDistance = 18;
+            controls.target.set(0, 0, 0);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.95); 
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.4); 
+            dirLight.position.set(4, 12, 8); 
+            scene.add(dirLight);
+
+            const loader = new THREE.GLTFLoader();
+            loader.load('./casa.glb', (gltf) => {
+                const houseModel = gltf.scene;
+                houseModel.position.set(0, -1.0, 0);
+                houseModel.scale.set(0.75, 0.75, 0.75);
+                scene.add(houseModel);
+            }, undefined, (err) => {
+                console.warn("Modelo 3D ./casa.glb não foi encontrado ou falhou ao carregar.", err);
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                if(!container) return;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+    </script>
+</body>
+</html>
