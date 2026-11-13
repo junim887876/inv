@@ -1,1035 +1,1067 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <!-- Meta tags obrigatórias para iOS PWA, tela cheia e respeito à Ilha Dinâmica do iPhone 14 Pro -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0a081d" />
   <title>Carteira IA • FIIs</title>
-
-  <!-- Tipografia Inter (complemento fiel ao SF Pro no Android/Desktop) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'sans-serif'],
-          },
-          screens: {
-            tablet: '700px', // Breakpoint exato para Samsung Galaxy Tab S9 FE (retrato e paisagem)
-          },
-        },
-      },
-    };
-  </script>
-
   <style>
-    /* =========================================================================
-       DESIGN SYSTEM: APPLE iOS DARK GLASSMORPHISM (#0a081d)
-       Otimizado para iPhone 14 Pro (Dynamic Island) & Galaxy Tab S9 FE
-       ========================================================================= */
     :root {
-      --bg-cosmic: #0a081d;
-      --card-surface: rgba(255, 255, 255, 0.055);
-      --card-surface-elevated: rgba(255, 255, 255, 0.08);
-      --card-border: rgba(255, 255, 255, 0.10);
-      --card-highlight: rgba(255, 255, 255, 0.16);
+      --bg: #0a081d;
+      --bg-grad-1: rgba(94, 72, 232, 0.22);
+      --bg-grad-2: rgba(16, 185, 129, 0.14);
+      --glass: rgba(255, 255, 255, 0.06);
+      --glass-strong: rgba(255, 255, 255, 0.10);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f5f7ff;
+      --muted: #9aa0bd;
+      --accent: #7c66ff;
+      --accent-2: #38bdf8;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --radius: 20px;
+      --safe-top: env(safe-area-inset-top, 20px);
+      --safe-bottom: env(safe-area-inset-bottom, 20px);
     }
 
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
-    }
-
-    html, body {
       margin: 0;
       padding: 0;
-      background-color: var(--bg-cosmic);
-      color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
     }
 
-    /* Respeito rigoroso à Ilha Dinâmica (Dynamic Island) e Home Bar do iPhone 14 Pro */
-    .safe-shell {
-      width: 100%;
-      max-width: 1080px;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 15% 10%, var(--bg-grad-1), transparent 42%),
+        radial-gradient(circle at 85% 85%, var(--bg-grad-2), transparent 45%);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-top: calc(var(--safe-top) + 12px);
+      padding-bottom: calc(var(--safe-bottom) + 24px);
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      line-height: 1.4;
+    }
+
+    .container {
+      max-width: 920px;
       margin: 0 auto;
-      padding-top: calc(env(safe-area-inset-top, 54px) + 12px);
-      padding-bottom: calc(env(safe-area-inset-bottom, 34px) + 20px);
-      padding-left: max(16px, env(safe-area-inset-left, 16px));
-      padding-right: max(16px, env(safe-area-inset-right, 16px));
     }
 
-    /* Luzes ambientais sutis para dar profundidade real ao vidro fosco */
-    .ambient-glow {
-      position: fixed;
-      border-radius: 9999px;
-      filter: blur(110px);
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.42;
+    /* Header compacto respeitando a Ilha Dinâmica do iPhone 14 Pro */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    .glow-emerald {
-      width: 320px;
-      height: 320px;
-      top: -60px;
-      left: -80px;
-      background: radial-gradient(circle, #10b981 0%, transparent 72%);
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .glow-indigo {
-      width: 380px;
-      height: 380px;
-      top: 25%;
-      right: -120px;
-      background: radial-gradient(circle, #4f46e5 0%, transparent 72%);
+    .logo-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 6px 20px rgba(124, 102, 255, 0.35);
     }
 
-    /* Cards Glassmorphism Apple iOS */
-    .glass-card {
-      background: var(--card-surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--card-border);
-      box-shadow:
-        0 16px 38px -14px rgba(0, 0, 0, 0.65),
-        inset 0 1px 0 0 var(--card-highlight);
+    .brand h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
     }
 
-    .glass-verdict {
-      background: linear-gradient(155deg, rgba(16, 185, 129, 0.14) 0%, rgba(255, 255, 255, 0.055) 60%);
+    .brand span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sync-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 38px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .dot.ok { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .dot.busy { background: var(--amber); animation: pulse 1s infinite; }
+    .dot.err { background: var(--red); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 17px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    /* Grid responsivo: 1 coluna no iPhone 14 Pro, 2 colunas no Galaxy Tab S9 FE */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 700px) {
+      .grid {
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: start;
+      }
+      .span-2 {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
       backdrop-filter: blur(22px);
       -webkit-backdrop-filter: blur(22px);
-      border: 1px solid rgba(52, 211, 153, 0.34);
-      box-shadow:
-        0 20px 44px -14px rgba(16, 185, 129, 0.22),
-        inset 0 1px 0 0 rgba(167, 243, 208, 0.25);
     }
 
-    .glass-verdict-opportunity {
-      background: linear-gradient(155deg, rgba(245, 158, 11, 0.16) 0%, rgba(255, 255, 255, 0.055) 60%);
-      border-color: rgba(251, 191, 36, 0.40);
-      box-shadow:
-        0 20px 44px -14px rgba(245, 158, 11, 0.22),
-        inset 0 1px 0 0 rgba(253, 230, 138, 0.28);
+    .card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    .glass-verdict-lock {
-      background: linear-gradient(155deg, rgba(56, 189, 248, 0.15) 0%, rgba(255, 255, 255, 0.055) 60%);
-      border-color: rgba(56, 189, 248, 0.38);
-      box-shadow:
-        0 20px 44px -14px rgba(56, 189, 248, 0.20),
-        inset 0 1px 0 0 rgba(186, 230, 253, 0.25);
+    /* Caixa de URL do Google Apps Script */
+    .sheets-box {
+      background: rgba(124, 102, 255, 0.08);
+      border: 1px solid rgba(124, 102, 255, 0.28);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 14px;
     }
 
-    /* Botão principal estilo Apple Action */
-    .btn-ai-primary {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      box-shadow:
-        0 12px 26px -6px rgba(16, 185, 129, 0.48),
-        inset 0 1px 0 rgba(255, 255, 255, 0.38);
-      transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), filter 0.16s ease;
+    .sheets-box.collapsed {
+      display: none;
     }
 
-    .btn-ai-primary:active {
-      transform: scale(0.975);
-      filter: brightness(0.95);
+    .sheets-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
     }
 
-    /* Números tabulares alinhados */
-    .tabular-nums {
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Inputs com font-size: 16px obrigatório para evitar zoom automático no Safari iOS */
-    .ios-field {
-      font-size: 16px !important;
-      background: rgba(10, 8, 29, 0.62);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #ffffff;
-      transition: border-color 0.18s ease, box-shadow 0.18s ease;
-    }
-
-    .ios-field:focus {
+    input[type="text"],
+    input[type="url"],
+    input[type="number"],
+    select {
+      width: 100%;
+      background: rgba(10, 8, 29, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      color: var(--text);
+      padding: 11px 13px;
+      font-size: 16px; /* Evita zoom automático no Safari iOS */
       outline: none;
-      border-color: #34d399;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+      min-height: 46px;
     }
 
-    /* Oculta setinhas nativas dos campos numéricos */
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type="number"] {
-      -moz-appearance: textfield;
+    input:focus, select:focus {
+      border-color: var(--accent);
     }
 
-    /* Toast estilo Dynamic Island */
-    #toast-pill {
-      top: calc(env(safe-area-inset-top, 14px) + 8px);
-      transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
+    .btn {
+      border: none;
+      border-radius: 13px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.12s ease, opacity 0.15s ease;
     }
 
-    /* Modal com fundo escuro fosco */
-    .modal-backdrop {
-      background: rgba(5, 4, 15, 0.78);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+    .btn:active {
+      transform: scale(0.98);
     }
 
-    @keyframes spinQuick {
-      to { transform: rotate(360deg); }
+    .btn-green {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      width: 100%;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.28);
     }
-    .spin-quick {
-      animation: spinQuick 0.7s linear infinite;
+
+    .btn-ghost {
+      background: var(--glass-strong);
+      border: 1px solid var(--border);
+      color: var(--text);
+      flex: 1;
+    }
+
+    /* Aporte diário */
+    .presets {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      flex: 1;
+      padding: 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(124, 102, 255, 0.16);
+    }
+
+    /* Card de Decisão IA */
+    .ai-hero {
+      background: linear-gradient(145deg, rgba(124, 102, 255, 0.18), rgba(16, 185, 129, 0.10));
+      border: 1px solid rgba(124, 102, 255, 0.38);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .badge-eq { background: rgba(56, 189, 248, 0.18); color: #7dd3fc; }
+    .badge-opp { background: rgba(16, 185, 129, 0.22); color: #6ee7b7; }
+    .badge-cap { background: rgba(245, 158, 11, 0.22); color: #fcd34d; }
+
+    .rec-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin: 12px 0 4px;
+    }
+
+    .rec-ticker {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+    }
+
+    .rec-cotas {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .rec-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .buy-form {
+      display: grid;
+      grid-template-columns: 1fr 0.75fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .field-lbl {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    /* Barras de equilíbrio da carteira */
+    .asset-item {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .asset-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .asset-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .asset-name {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .asset-meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      position: relative;
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: visible;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.3s ease;
+    }
+
+    .bar-target {
+      position: absolute;
+      top: -3px;
+      left: 33.33%;
+      width: 2px;
+      height: 15px;
+      background: #fff;
+      opacity: 0.75;
+    }
+
+    /* Métricas resumidas */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 14px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stat-box strong {
+      display: block;
+      font-size: 15px;
+      margin-top: 2px;
+    }
+
+    .stat-box span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Histórico recente */
+    .hist-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .hist-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    .del-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 16px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    /* Edição rápida de cotação / VP */
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 76px 1fr 1fr 1fr;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .edit-grid span {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .edit-grid input {
+      padding: 8px 6px;
+      min-height: 40px;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 16px);
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(20, 18, 48, 0.96);
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.25s ease;
+      z-index: 99;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
   </style>
 </head>
-<body class="selection:bg-emerald-500/30 selection:text-emerald-200">
-
-  <!-- Luzes de fundo -->
-  <div class="ambient-glow glow-emerald"></div>
-  <div class="ambient-glow glow-indigo"></div>
-
-  <!-- Toast estilo Dynamic Island (substitui qualquer alert/confirm) -->
-  <div id="toast-pill" class="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 -translate-y-5">
-    <div class="px-4 py-2.5 rounded-full bg-[#151233]/95 border border-white/15 shadow-2xl flex items-center gap-2.5 backdrop-blur-xl">
-      <span id="toast-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
-      <span id="toast-text" class="text-xs font-semibold text-white whitespace-nowrap">Salvo</span>
-    </div>
-  </div>
-
-  <!-- Container Principal com Safe Areas (iPhone 14 Pro) & Grid 2 Colunas (Galaxy Tab S9 FE >= 700px) -->
-  <main class="safe-shell relative z-10">
-
-    <!-- CABEÇALHO COMPACTO COM INDICADOR VISUAL DE SINCRONIZAÇÃO (PLANILHA) -->
-    <header class="flex items-center justify-between gap-3 mb-4">
-      <div class="min-w-0">
-        <h1 class="text-xl tablet:text-2xl font-extrabold tracking-tight text-white">
-          Carteira IA <span class="text-emerald-400">•</span> FIIs
-        </h1>
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-          <div class="inline-flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="text-xs font-medium text-slate-400">Salvo local</span>
-          </div>
-
-          <!-- Indicador visual de status da Planilha Google -->
-          <button type="button" onclick="toggleTopSyncEditor(true)"
-            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition">
-            <span id="header-sheet-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
-            <span id="header-sheet-status" class="text-[11px] font-semibold text-slate-300 tabular-nums">Planilha: Não ligada</span>
-          </button>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo-dot">IA</div>
+        <div>
+          <h1>Carteira IA • FIIs</h1>
+          <span>CPTS11 • GARE11 • SNAG11</span>
         </div>
       </div>
-
-      <!-- Único botão de Engrenagem para Modal de Cotações, VP, Apps Script e Backup -->
-      <button type="button" onclick="openSettingsModal()" aria-label="Ajustes e Planilha"
-        class="glass-card min-h-[46px] min-w-[46px] rounded-2xl flex items-center justify-center text-slate-200 hover:text-white active:scale-95 transition shrink-0">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </button>
+      <div class="header-actions">
+        <button class="sync-pill" id="btnToggleSheets" onclick="toggleSheetsBox()">
+          <span class="dot" id="syncDot"></span>
+          <span id="syncLabel">Planilha</span>
+        </button>
+        <button class="icon-btn" onclick="toggleSettings()" title="Ajustar Cotações e VP">⚙️</button>
+      </div>
     </header>
 
-    <!-- BARRA DEDICADA NO TOPO PARA URL DO APPS SCRIPT (/exec) & SINCRONIZAÇÃO -->
-    <section class="glass-card rounded-3xl p-3.5 tablet:p-4 mb-4 space-y-2.5">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <span class="text-xs font-bold uppercase tracking-wider text-emerald-300 shrink-0">Google Planilhas</span>
-          <span id="top-url-badge" class="text-[11px] text-slate-400 truncate">Cole a URL /exec para sincronizar</span>
-        </div>
-
-        <button type="button" id="btn-toggle-top-url" onclick="toggleTopSyncEditor()"
-          class="min-h-[34px] px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-slate-300 border border-white/10 shrink-0 transition">
-          URL
-        </button>
+    <!-- Campo Google Apps Script URL (salvo automaticamente no localStorage) -->
+    <section class="sheets-box" id="sheetsBox">
+      <div class="card-title" style="margin-bottom:4px;">
+        <span>☁️ URL do Google Apps Script (/exec)</span>
+        <span id="lastSyncText" style="font-weight:500;text-transform:none;">Salvo no navegador</span>
       </div>
-
-      <!-- Campo dedicado para colar a URL do Apps Script (/exec) -->
-      <div id="top-url-input-wrap" class="space-y-2">
-        <input id="top-appscript-url-input" type="url" inputmode="url" autocomplete="off" spellcheck="false"
-          class="ios-field w-full min-h-[46px] rounded-2xl px-3.5 py-2 text-sm font-medium"
-          placeholder="https://script.google.com/macros/s/.../exec"
-          oninput="onAppScriptUrlChange(this.value, 'top')" />
-      </div>
-
-      <!-- Botões de Ação Direta: Enviar para Planilha (POST) e Puxar da Planilha (GET) -->
-      <div class="grid grid-cols-2 gap-2.5">
-        <button type="button" id="btn-top-push" onclick="pushToGoogleSheet(false)"
-          class="min-h-[46px] rounded-2xl bg-emerald-500/15 hover:bg-emerald-500/25 active:scale-[0.98] border border-emerald-400/35 px-3 text-xs font-extrabold text-emerald-200 flex items-center justify-center gap-1.5 transition cursor-pointer">
-          <span>↑ Enviar para Planilha</span>
-        </button>
-        <button type="button" id="btn-top-pull" onclick="pullFromGoogleSheet()"
-          class="min-h-[46px] rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 active:scale-[0.98] border border-cyan-400/35 px-3 text-xs font-extrabold text-cyan-200 flex items-center justify-center gap-1.5 transition cursor-pointer">
-          <span>↓ Puxar da Planilha</span>
-        </button>
+      <input
+        type="url"
+        id="appsScriptUrlInput"
+        placeholder="https://script.google.com/macros/s/.../exec"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <div class="sheets-row">
+        <button class="btn btn-ghost" onclick="syncToSheets(true)">⬆️ Enviar p/ Planilha</button>
+        <button class="btn btn-ghost" onclick="pullFromSheets()">⬇️ Puxar da Planilha</button>
       </div>
     </section>
 
-    <!-- GRID RESPONSIVO: 1 Coluna no Celular | 2 Colunas Equilibradas no Tablet (>= 700px) -->
-    <div class="grid grid-cols-1 tablet:grid-cols-2 gap-4 tablet:gap-5 items-start">
+    <div class="grid">
+      <!-- Coluna 1: Aporte Diário + Decisão IA + Registro Manual -->
+      <div class="card ai-hero">
+        <div class="card-title">
+          <span>Decisão da IA Hoje</span>
+          <span class="badge badge-eq" id="aiBadge">⚖️ EQUILÍBRIO</span>
+        </div>
 
-      <!-- =====================================================================
-           COLUNA 1: DECISÃO DA IA HOJE + REGISTRO MANUAL DE COMPRA
-           ===================================================================== -->
-      <div class="space-y-4">
-
-        <!-- BLOCO 1A: VALOR DO APORTE DIÁRIO + BOTÃO ANALISAR -->
-        <section class="glass-card rounded-3xl p-4 tablet:p-5 space-y-3.5">
-          <div class="flex items-center justify-between gap-2">
-            <label for="daily-amount-input" class="text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Quanto vou investir hoje (R$)
-            </label>
-            <span class="text-[11px] text-slate-400 tabular-nums">Auto-salvo</span>
-          </div>
-
-          <div class="relative">
-            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">R$</span>
-            <input id="daily-amount-input" type="number" step="0.01" min="1" inputmode="decimal"
-              class="ios-field w-full min-h-[48px] rounded-2xl pl-10 pr-4 py-2.5 font-extrabold tabular-nums"
-              placeholder="30.27"
-              oninput="onDailyAmountChange(this.value)" />
-          </div>
-
-          <!-- 2 Botões Rápidos de Meta -->
-          <div class="grid grid-cols-2 gap-2.5">
-            <button type="button" id="preset-btn-300" onclick="applyDailyPreset(30.27)"
-              class="min-h-[46px] rounded-2xl px-3 py-2 text-xs font-bold tabular-nums border transition flex items-center justify-center">
-              R$ 30,27 (Meta 300)
-            </button>
-            <button type="button" id="preset-btn-400" onclick="applyDailyPreset(40.33)"
-              class="min-h-[46px] rounded-2xl px-3 py-2 text-xs font-bold tabular-nums border transition flex items-center justify-center">
-              R$ 40,33 (Meta 400)
-            </button>
-          </div>
-
-          <!-- Botão Principal da IA -->
-          <button type="button" id="btn-analyze-ai" onclick="triggerAiAnalysis(true)"
-            class="btn-ai-primary w-full min-h-[52px] rounded-2xl px-5 py-3 text-sm font-extrabold tracking-wide text-white uppercase flex items-center justify-center gap-2 cursor-pointer">
-            <span>✦ ANALISAR MELHOR COMPRA</span>
-          </button>
-        </section>
-
-        <!-- BLOCO 1B: CARD DE VEREDITO DA IA -->
-        <section id="verdict-card" class="glass-verdict rounded-3xl p-4 tablet:p-5 transition-all">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <span id="ai-mode-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-400/20 text-emerald-200 border border-emerald-300/30">
-                ⚖️ EQUILÍBRIO
-              </span>
-              <div class="flex items-baseline gap-2.5 mt-2">
-                <h2 id="ai-rec-ticker" class="text-3xl font-black tracking-tight text-white">CPTS11</h2>
-                <span id="ai-rec-pvp" class="text-sm font-bold text-emerald-300 tabular-nums">P/VP 0,80</span>
-              </div>
-            </div>
-
-            <div class="text-right">
-              <span class="text-[11px] text-slate-400 block">Comprar hoje</span>
-              <span id="ai-rec-shares" class="text-2xl font-black text-emerald-300 tabular-nums">4 cotas</span>
-            </div>
-          </div>
-
-          <!-- Explicação direta da IA em 2 linhas -->
-          <p id="ai-rec-reason" class="text-xs text-slate-200/90 leading-relaxed mt-2.5 line-clamp-2">
-            Iniciando carteira equilibrada pelo menor P/VP (0,80) para maximizar cotas desde o primeiro aporte.
-          </p>
-
-          <!-- Resumo financeiro da ordem do dia -->
-          <div class="grid grid-cols-2 gap-2.5 mt-3.5 pt-3.5 border-t border-white/10">
-            <div class="rounded-2xl bg-black/25 px-3 py-2">
-              <span class="text-[11px] text-slate-400 block">Custo total</span>
-              <span id="ai-rec-cost" class="text-base font-extrabold text-white tabular-nums">R$ 28,04</span>
-            </div>
-            <div class="rounded-2xl bg-black/25 px-3 py-2">
-              <span class="text-[11px] text-slate-400 block">Troco que sobra</span>
-              <span id="ai-rec-change" class="text-base font-extrabold text-cyan-300 tabular-nums">R$ 2,23</span>
-            </div>
-          </div>
-
-          <!-- Aviso inteligente quando o troco já compra +1 cota extra de um fundo atrasado -->
-          <div id="ai-extra-tip" class="hidden mt-2.5 rounded-2xl bg-cyan-500/15 border border-cyan-400/25 px-3 py-2 text-xs text-cyan-100">
-          </div>
-        </section>
-
-        <!-- BLOCO 1C: REGISTRAR COMPRA REALIZADA -->
-        <section class="glass-card rounded-3xl p-4 tablet:p-5 space-y-3.5">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Registrar Compra Realizada
-            </h3>
-            <span id="reg-subtotal" class="text-xs font-bold text-emerald-300 tabular-nums">Total: R$ 28,04</span>
-          </div>
-
-          <!-- Seletor rápido dos 3 fundos -->
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" id="reg-tab-CPTS11" onclick="selectRegisterTicker('CPTS11', true)"
-              class="min-h-[46px] rounded-2xl text-xs font-extrabold border transition">
-              CPTS11
-            </button>
-            <button type="button" id="reg-tab-GARE11" onclick="selectRegisterTicker('GARE11', true)"
-              class="min-h-[46px] rounded-2xl text-xs font-extrabold border transition">
-              GARE11
-            </button>
-            <button type="button" id="reg-tab-SNAG11" onclick="selectRegisterTicker('SNAG11', true)"
-              class="min-h-[46px] rounded-2xl text-xs font-extrabold border transition">
-              SNAG11
-            </button>
-          </div>
-
-          <!-- Controle de Cotas (- / +) + Preço Pago -->
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label for="reg-qty-input" class="block text-[11px] font-medium text-slate-400 mb-1">
-                Qtd. Cotas
-              </label>
-              <div class="flex items-center gap-1.5">
-                <button type="button" onclick="stepRegisterQty(-1)" aria-label="Diminuir cotas"
-                  class="min-h-[46px] min-w-[46px] rounded-2xl bg-white/10 hover:bg-white/15 active:scale-95 text-lg font-bold text-white flex items-center justify-center transition">
-                  −
-                </button>
-                <input id="reg-qty-input" type="number" min="1" step="1" inputmode="numeric"
-                  class="ios-field w-full min-h-[46px] rounded-2xl px-2 text-center font-extrabold tabular-nums"
-                  value="4" oninput="updateRegisterSubtotal()" />
-                <button type="button" onclick="stepRegisterQty(1)" aria-label="Aumentar cotas"
-                  class="min-h-[46px] min-w-[46px] rounded-2xl bg-white/10 hover:bg-white/15 active:scale-95 text-lg font-bold text-white flex items-center justify-center transition">
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label for="reg-price-input" class="block text-[11px] font-medium text-slate-400 mb-1">
-                Preço Pago (R$)
-              </label>
-              <input id="reg-price-input" type="number" step="0.01" min="0.01" inputmode="decimal"
-                class="ios-field w-full min-h-[46px] rounded-2xl px-3 font-extrabold tabular-nums"
-                value="7.01" oninput="updateRegisterSubtotal()" />
-            </div>
-          </div>
-
-          <!-- Botão Salvar Compra (salva no navegador + envia automático para Planilha) -->
-          <button type="button" onclick="savePurchaseToPortfolio()"
-            class="w-full min-h-[50px] rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-[0.98] border border-emerald-400/40 text-emerald-200 font-extrabold text-xs tracking-wider uppercase transition flex items-center justify-center gap-2 cursor-pointer">
-            <span>✓ SALVAR COMPRA NA CARTEIRA</span>
-          </button>
-        </section>
-
-      </div>
-
-      <!-- =====================================================================
-           COLUNA 2: PAINEL DE EQUILÍBRIO DA CARTEIRA + HISTÓRICO RECENTE
-           ===================================================================== -->
-      <div class="space-y-4">
-
-        <!-- BLOCO 2A: EQUILÍBRIO DOS 3 FUNDOS (META 33,3%) -->
-        <section class="glass-card rounded-3xl p-4 tablet:p-5 space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Equilíbrio da Carteira
-            </h2>
-            <span class="text-[11px] font-semibold text-slate-400">Meta: 33,3% cada</span>
-          </div>
-
-          <!-- 3 Barras Visuais (CPTS11, GARE11, SNAG11) -->
-          <div id="balance-bars-container" class="space-y-3.5"></div>
-
-          <!-- Resumo Compacto no Rodapé do Card -->
-          <div class="pt-3.5 border-t border-white/10 space-y-3">
-            <div class="grid grid-cols-3 gap-2 text-center">
-              <div class="rounded-2xl bg-black/25 px-2 py-2.5">
-                <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Total Cotas</span>
-                <span id="summary-total-shares" class="text-sm tablet:text-base font-extrabold text-white tabular-nums mt-0.5 block">0</span>
-              </div>
-              <div class="rounded-2xl bg-black/25 px-2 py-2.5">
-                <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Patrimônio</span>
-                <span id="summary-total-equity" class="text-sm tablet:text-base font-extrabold text-white tabular-nums mt-0.5 block">R$ 0,00</span>
-              </div>
-              <div class="rounded-2xl bg-black/25 px-2 py-2.5">
-                <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Renda/Mês</span>
-                <span id="summary-monthly-income" class="text-sm tablet:text-base font-extrabold text-emerald-300 tabular-nums mt-0.5 block">R$ 0,00</span>
-              </div>
-            </div>
-
-            <!-- Barra de Progresso para Meta de R$ 300/mês -->
-            <div>
-              <div class="flex items-center justify-between text-[11px] mb-1.5 tabular-nums">
-                <span class="text-slate-400">Progresso Meta R$ 300/mês</span>
-                <span id="goal-300-pct" class="font-bold text-emerald-300">0,0%</span>
-              </div>
-              <div class="w-full h-2.5 rounded-full bg-black/40 overflow-hidden p-[1px]">
-                <div id="goal-300-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- BLOCO 2B: ÚLTIMAS 4 COMPRAS REGISTRADAS -->
-        <section class="glass-card rounded-3xl p-4 tablet:p-5 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Últimas Compras
-            </h3>
-            <span id="history-count-label" class="text-[11px] text-slate-400 tabular-nums">0 registros</span>
-          </div>
-
-          <div id="recent-purchases-list" class="space-y-2">
-            <!-- Populado via JS -->
-          </div>
-        </section>
-
-      </div>
-
-    </div>
-  </main>
-
-  <!-- =========================================================================
-       MODAL DA ENGRENAGEM (⚙️): GOOGLE PLANILHAS, COTAÇÕES, VP E BACKUP
-       ========================================================================= -->
-  <div id="settings-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-end tablet:items-center justify-center p-0 tablet:p-4"
-    onclick="if(event.target === this) closeSettingsModal()">
-
-    <div class="w-full max-w-lg bg-[#110e2b] border border-white/15 rounded-t-3xl tablet:rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto p-5 space-y-4"
-      style="padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 16px);">
-
-      <!-- Cabeçalho Modal -->
-      <div class="flex items-center justify-between pb-2 border-b border-white/10">
         <div>
-          <h2 class="text-base font-extrabold text-white">Planilha, Cotações e VP</h2>
-          <p class="text-xs text-slate-400">Sincronização Google Sheets e parâmetros</p>
+          <label class="field-lbl" for="dailyBudgetInput">Aporte de hoje (R$)</label>
+          <input type="number" id="dailyBudgetInput" step="0.01" min="0" inputmode="decimal" />
         </div>
-        <button type="button" onclick="closeSettingsModal()" aria-label="Fechar modal"
-          class="min-h-[46px] min-w-[46px] rounded-2xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold flex items-center justify-center">
-          ✕
-        </button>
-      </div>
-
-      <!-- SEÇÃO DEDICADA GOOGLE APPS SCRIPT NOS AJUSTES -->
-      <div class="rounded-2xl bg-emerald-500/10 border border-emerald-400/25 p-3.5 space-y-2.5">
-        <div class="flex items-center justify-between gap-2">
-          <label for="modal-appscript-url-input" class="text-xs font-extrabold text-emerald-200">
-            URL Google Apps Script (/exec)
-          </label>
-          <span class="text-[10px] text-emerald-300/80">Salva no navegador</span>
+        <div class="presets">
+          <div class="chip" data-val="30.27" onclick="setBudget(30.27)">R$ 30,27/dia (Meta 300)</div>
+          <div class="chip" data-val="40.33" onclick="setBudget(40.33)">R$ 40,33/dia (Meta 400)</div>
         </div>
 
-        <input id="modal-appscript-url-input" type="url" inputmode="url" autocomplete="off" spellcheck="false"
-          class="ios-field w-full min-h-[46px] rounded-2xl px-3.5 py-2 text-sm font-medium"
-          placeholder="https://script.google.com/macros/s/.../exec"
-          oninput="onAppScriptUrlChange(this.value, 'modal')" />
-
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="pushToGoogleSheet(false)"
-            class="min-h-[46px] rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-xs font-extrabold text-emerald-200 transition">
-            ↑ Enviar para Planilha
-          </button>
-          <button type="button" onclick="pullFromGoogleSheet()"
-            class="min-h-[46px] rounded-2xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-xs font-extrabold text-cyan-200 transition">
-            ↓ Puxar da Planilha
-          </button>
+        <div class="rec-main">
+          <div class="rec-ticker" id="recTicker">CPTS11</div>
+          <div class="rec-cotas" id="recCotas">4 cotas</div>
+        </div>
+        <div class="rec-sub" id="recReason">
+          P/VP 0,80 • Sobram R$ 2,23 de troco
         </div>
 
-        <button type="button" onclick="copyAppsScriptCode()"
-          class="w-full min-h-[44px] rounded-2xl bg-white/10 hover:bg-white/15 text-[11px] font-bold text-slate-200 border border-white/10 transition">
-          📋 Copiar Código .gs para Google Planilhas
-        </button>
-      </div>
-
-      <!-- Botão Opcional Buscar Cotações B3 -->
-      <button type="button" id="btn-fetch-b3" onclick="fetchQuotesFromB3()"
-        class="w-full min-h-[48px] rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/35 text-indigo-200 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition">
-        <svg id="b3-spin-icon" class="w-4 h-4 hidden spin-quick" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-        </svg>
-        <span id="btn-fetch-b3-text">↻ Buscar Cotações B3 (Opcional)</span>
-      </button>
-
-      <!-- Campos Editáveis dos 3 Fundos -->
-      <div id="settings-assets-form" class="space-y-3"></div>
-
-      <!-- Backup JSON (Exportar / Importar) & Zerar Dados -->
-      <div class="pt-3 border-t border-white/10 space-y-2.5">
-        <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
-          Backup & Manutenção
-        </span>
-
-        <div class="grid grid-cols-2 gap-2.5">
-          <button type="button" onclick="exportBackupJson()"
-            class="min-h-[46px] rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white px-3 transition">
-            Exportar JSON
-          </button>
-          <button type="button" onclick="toggleImportBox()"
-            class="min-h-[46px] rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white px-3 transition">
-            Importar JSON
-          </button>
-        </div>
-
-        <!-- Área oculta para colar/carregar JSON -->
-        <div id="import-json-box" class="hidden space-y-2 pt-1">
-          <textarea id="import-json-textarea" rows="3"
-            class="ios-field w-full rounded-2xl p-3 text-xs font-mono"
-            placeholder="Cole aqui o texto JSON exportado anteriormente..."></textarea>
-          <div class="flex gap-2">
-            <label class="min-h-[46px] flex-1 rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-slate-200 flex items-center justify-center cursor-pointer">
-              Escolher Arquivo .json
-              <input type="file" accept=".json,application/json" class="hidden" onchange="importJsonFromFile(event)" />
-            </label>
-            <button type="button" onclick="applyImportedJsonText()"
-              class="min-h-[46px] flex-1 rounded-2xl bg-emerald-500/25 border border-emerald-400/40 text-xs font-extrabold text-emerald-200">
-              Restaurar Agora
-            </button>
+        <div class="buy-form">
+          <div>
+            <label class="field-lbl" for="buyTicker">FII</label>
+            <select id="buyTicker">
+              <option value="CPTS11">CPTS11</option>
+              <option value="GARE11">GARE11</option>
+              <option value="SNAG11">SNAG11</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-lbl" for="buyQty">Qtd</label>
+            <input type="number" id="buyQty" min="1" step="1" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="field-lbl" for="buyPrice">Preço (R$)</label>
+            <input type="number" id="buyPrice" min="0.01" step="0.01" inputmode="decimal" />
           </div>
         </div>
+        <button class="btn btn-green" onclick="registerPurchase()">✓ Registrar Compra & Salvar</button>
+      </div>
 
-        <button type="button" id="btn-wipe-data" onclick="handleWipeData()"
-          class="w-full min-h-[46px] rounded-2xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-xs font-bold text-rose-200 transition">
-          Zerar Dados
-        </button>
+      <!-- Coluna 2: Equilíbrio da Carteira -->
+      <div class="card">
+        <div class="card-title">
+          <span>Equilíbrio da Carteira</span>
+          <span>Meta: 33,3% cada</span>
+        </div>
+
+        <div id="portfolioList"></div>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <span>Patrimônio</span>
+            <strong id="statTotal">R$ 0,00</strong>
+          </div>
+          <div class="stat-box">
+            <span>Cotas Totais</span>
+            <strong id="statShares">0</strong>
+          </div>
+          <div class="stat-box">
+            <span>Dividendo/Mês</span>
+            <strong id="statDiv" style="color:var(--green);">R$ 0,00</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Histórico Recente (para conferir ou desfazer erro) -->
+      <div class="card span-2" id="historyCard" style="display:none;">
+        <div class="card-title">
+          <span>Últimos Registros</span>
+          <span id="histCount">0 compras</span>
+        </div>
+        <div class="hist-list" id="historyList"></div>
+      </div>
+
+      <!-- Painel Ocultável de Cotações / VP / Backup -->
+      <div class="card span-2" id="settingsCard" style="display:none;">
+        <div class="card-title">
+          <span>Ajustar Preço, VP e Dividendo por Cota</span>
+          <span>Salva automático</span>
+        </div>
+        <div class="edit-grid" style="font-size:11px;color:var(--muted);margin-top:0;">
+          <div>Ativo</div>
+          <div style="text-align:center;">Cotação (R$)</div>
+          <div style="text-align:center;">VP (R$)</div>
+          <div style="text-align:center;">Div/Mês (R$)</div>
+        </div>
+        <div id="assetEditors"></div>
+        <div class="sheets-row" style="margin-top:12px;">
+          <button class="btn btn-ghost" onclick="exportBackup()">Exportar JSON</button>
+          <button class="btn btn-ghost" onclick="resetDemo()">Zerar Cotas</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <script>
-    /* =========================================================================
-       ESTADO PADRÃO & CHAVES DO LOCALSTORAGE (100% OFFLINE-FIRST + GOOGLE SHEETS)
-       ========================================================================= */
-    const STORAGE_KEY = 'carteira_ia_fiis_v1';
-    const APPSCRIPT_URL_KEY = 'carteira_ia_appscript_url';
-    const APPSCRIPT_LAST_SYNC_KEY = 'carteira_ia_appscript_last_sync';
-    const TICKERS = ['CPTS11', 'GARE11', 'SNAG11'];
+  <div class="toast" id="toast">Salvo!</div>
 
-    const DEFAULT_DATA = {
-      dailyAmount: 30.27,
-      selectedRegTicker: 'CPTS11',
-      funds: {
-        CPTS11: {
-          ticker: 'CPTS11',
-          name: 'Capitânia Securities II',
-          price: 7.01,
-          vp: 8.79,
-          dividend: 0.09,
-          shares: 0,
-          avgPrice: 7.01
-        },
-        GARE11: {
-          ticker: 'GARE11',
-          name: 'Guardian Real Estate',
-          price: 8.11,
-          vp: 9.07,
-          dividend: 0.083,
-          shares: 0,
-          avgPrice: 8.11
-        },
-        SNAG11: {
-          ticker: 'SNAG11',
-          name: 'Suno Agro Fiagro',
-          price: 9.56,
-          vp: 10.05,
-          dividend: 0.12,
-          shares: 0,
-          avgPrice: 9.56
-        }
+  <script>
+    const STORAGE_KEY = 'carteira_ia_fiis_state_v2';
+    const URL_STORAGE_KEY = 'carteira_ia_appscript_url';
+
+    const DEFAULT_STATE = {
+      dailyBudget: 30.27,
+      lastSyncedAt: '',
+      holdings: {
+        CPTS11: { qty: 0, avgPrice: 0, price: 7.01, vp: 8.79, div: 0.09 },
+        GARE11: { qty: 0, avgPrice: 0, price: 8.11, vp: 9.07, div: 0.083 },
+        SNAG11: { qty: 0, avgPrice: 0, price: 9.56, vp: 10.02, div: 0.12 }
       },
-      history: [] // Lista de transações: { id, ticker, qty, pricePaid, total, dateStr }
+      purchases: []
     };
 
-    /* Código Google Apps Script (.gs) embutido para cópia em 1 clique */
-    const GOOGLE_APPS_SCRIPT_GS = `/**
- * Carteira IA • FIIs (CPTS11, GARE11, SNAG11)
- * Backend Google Apps Script para sincronizar iPhone 14 Pro e Galaxy Tab S9 FE
- *
- * Como implantar:
- * 1. Abra sua Planilha Google -> Extensões -> Apps Script
- * 2. Cole este código e salve (Ctrl+S)
- * 3. Clique em Implantar -> Nova implantação -> Tipo: App da Web
- * 4. Executar como: Eu | Quem tem acesso: Qualquer pessoa
- * 5. Copie a URL terminada em /exec e cole no aplicativo
- */
+    let state = loadState();
+    let currentRecommendation = null;
 
-function doGet(e) {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var backupSheet = ss.getSheetByName('_Backup_JSON');
-    if (!backupSheet) {
-      return jsonResponse({ ok: false, error: 'Nenhum backup encontrado na planilha ainda.' });
-    }
-    var rawJson = backupSheet.getRange('A2').getValue();
-    var updatedAt = backupSheet.getRange('B2').getValue();
-    if (!rawJson) {
-      return jsonResponse({ ok: false, error: 'Backup vazio na aba _Backup_JSON.' });
-    }
-    var parsedState = JSON.parse(rawJson);
-    return jsonResponse({
-      ok: true,
-      updatedAt: updatedAt || new Date().toISOString(),
-      state: parsedState
-    });
-  } catch (err) {
-    return jsonResponse({ ok: false, error: String(err) });
-  }
-}
-
-function doPost(e) {
-  try {
-    var rawBody = (e && e.postData && e.postData.contents) ? e.postData.contents : '{}';
-    var payload = JSON.parse(rawBody);
-    var state = payload.state ? payload.state : payload;
-    var updatedAt = payload.updatedAt || new Date().toISOString();
-    var device = payload.device || 'WebApp';
-
-    if (!state || !state.funds) {
-      return jsonResponse({ ok: false, error: 'Payload inválido.' });
-    }
-
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-
-    // 1. Aba oculta/técnica de estado completo para sincronização instantânea entre dispositivos
-    var backupSheet = getOrCreateSheet(ss, '_Backup_JSON');
-    backupSheet.getRange('A1:C1').setValues([['JSON_COMPLETO', 'ULTIMA_ATUALIZACAO', 'DISPOSITIVO']]);
-    backupSheet.getRange('A2:C2').setValues([[JSON.stringify(state), updatedAt, device]]);
-
-    // 2. Aba visual Resumo_Carteira
-    var resumoSheet = getOrCreateSheet(ss, 'Resumo_Carteira');
-    resumoSheet.clearContents();
-    resumoSheet.getRange('A1:J1').setValues([[
-      'Fundo', 'Nome', 'Cotas', 'Preço Médio (R$)', 'Cotação Atual (R$)',
-      'VP (R$)', 'P/VP', 'Patrimônio (R$)', 'Peso (%)', 'Renda Mensal Est. (R$)'
-    ]]);
-
-    var tickers = ['CPTS11', 'GARE11', 'SNAG11'];
-    var totalEquity = 0;
-    tickers.forEach(function(tk) {
-      var f = state.funds[tk];
-      if (f) totalEquity += (Number(f.shares || 0) * Number(f.price || 0));
-    });
-
-    var rows = [];
-    tickers.forEach(function(tk) {
-      var f = state.funds[tk];
-      if (!f) return;
-      var shares = Number(f.shares || 0);
-      var price = Number(f.price || 0);
-      var vp = Number(f.vp || 1);
-      var avg = Number(f.avgPrice || price);
-      var div = Number(f.dividend || 0);
-      var equity = shares * price;
-      var weight = totalEquity > 0 ? (equity / totalEquity) * 100 : 0;
-      var pvp = vp > 0 ? price / vp : 0;
-      var monthlyIncome = shares * div;
-
-      rows.push([
-        tk, f.name || tk, shares, Number(avg.toFixed(2)), Number(price.toFixed(2)),
-        Number(vp.toFixed(2)), Number(pvp.toFixed(2)), Number(equity.toFixed(2)),
-        Number(weight.toFixed(1)), Number(monthlyIncome.toFixed(2))
-      ]);
-    });
-
-    if (rows.length > 0) {
-      resumoSheet.getRange(2, 1, rows.length, 10).setValues(rows);
-    }
-    resumoSheet.getRange('A6:B7').setValues([
-      ['Aporte Diário (R$)', Number(state.dailyAmount || 0)],
-      ['Sincronizado em', updatedAt]
-    ]);
-
-    // 3. Aba Historico_Compras
-    var histSheet = getOrCreateSheet(ss, 'Historico_Compras');
-    histSheet.clearContents();
-    histSheet.getRange('A1:F1').setValues([[
-      'ID', 'Data / Hora', 'Fundo', 'Quantidade', 'Preço Pago (R$)', 'Total (R$)'
-    ]]);
-    var history = Array.isArray(state.history) ? state.history : [];
-    if (history.length > 0) {
-      var histRows = history.map(function(tx) {
-        return [
-          tx.id || '',
-          tx.dateStr || '',
-          tx.ticker || '',
-          Number(tx.qty || 0),
-          Number(tx.pricePaid || 0),
-          Number(tx.total || 0)
-        ];
-      });
-      histSheet.getRange(2, 1, histRows.length, 6).setValues(histRows);
-    }
-
-    return jsonResponse({ ok: true, updatedAt: updatedAt });
-  } catch (err) {
-    return jsonResponse({ ok: false, error: String(err) });
-  }
-}
-
-function getOrCreateSheet(ss, name) {
-  var sheet = ss.getSheetByName(name);
-  if (!sheet) {
-    sheet = ss.insertSheet(name);
-  }
-  return sheet;
-}
-
-function jsonResponse(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}`;
-
-    let state = loadFromStorage();
-    let appScriptUrl = loadAppScriptUrl();
-    let lastAiDecision = null;
-    let wipeArmed = false;
-    let wipeTimer = null;
-    let autoSyncDebounceTimer = null;
-    let topUrlExpanded = !appScriptUrl; // Se não houver URL salva, mostra o campo aberto no topo
-
-    /**
-     * Higieniza e mescla qualquer objeto de estado (local ou vindo da Planilha)
-     */
-    function sanitizeState(parsed) {
-      const clean = JSON.parse(JSON.stringify(DEFAULT_DATA));
-      if (!parsed || typeof parsed !== 'object') return clean;
-
-      if (typeof parsed.dailyAmount === 'number' && parsed.dailyAmount > 0) {
-        clean.dailyAmount = parsed.dailyAmount;
-      }
-      if (TICKERS.includes(parsed.selectedRegTicker)) {
-        clean.selectedRegTicker = parsed.selectedRegTicker;
-      }
-      if (parsed.funds) {
-        TICKERS.forEach((tk) => {
-          const src = parsed.funds[tk];
-          if (src) {
-            if (typeof src.price === 'number' && src.price > 0) clean.funds[tk].price = src.price;
-            if (typeof src.vp === 'number' && src.vp > 0) clean.funds[tk].vp = src.vp;
-            if (typeof src.dividend === 'number' && src.dividend >= 0) clean.funds[tk].dividend = src.dividend;
-            if (typeof src.shares === 'number' && src.shares >= 0) clean.funds[tk].shares = Math.floor(src.shares);
-            if (typeof src.avgPrice === 'number' && src.avgPrice > 0) clean.funds[tk].avgPrice = src.avgPrice;
-          }
-        });
-      }
-      if (Array.isArray(parsed.history)) {
-        clean.history = parsed.history;
-      }
-      return clean;
-    }
-
-    /**
-     * Carrega os dados salvos no navegador com fallback seguro
-     */
-    function loadFromStorage() {
+    function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_DATA));
-        return sanitizeState(JSON.parse(raw));
+        if (!raw) return structuredClone(DEFAULT_STATE);
+        const parsed = JSON.parse(raw);
+        return {
+          ...structuredClone(DEFAULT_STATE),
+          ...parsed,
+          holdings: {
+            ...structuredClone(DEFAULT_STATE.holdings),
+            ...(parsed.holdings || {})
+          }
+        };
       } catch (e) {
-        return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        return structuredClone(DEFAULT_STATE);
       }
     }
 
-    /**
-     * Persiste estado atual no localStorage
-     */
-    function saveToStorage() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (e) {
-        // Ignora caso storage esteja bloqueado
+    function saveState(triggerCloud = true) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+      if (triggerCloud && getAppsScriptUrl()) {
+        syncToSheets(false);
       }
     }
 
-    /**
-     * Carrega URL do Google Apps Script salva na chave dedicada carteira_ia_appscript_url
-     */
-    function loadAppScriptUrl() {
-      try {
-        return (localStorage.getItem(APPSCRIPT_URL_KEY) || '').trim();
-      } catch (e) {
-        return '';
-      }
+    function getAppsScriptUrl() {
+      return (localStorage.getItem(URL_STORAGE_KEY) || '').trim();
     }
 
-    /**
-     * Salva e sincroniza a URL entre o campo do topo e o campo dos ajustes
-     */
-    function onAppScriptUrlChange(rawUrl, source) {
-      const cleanUrl = String(rawUrl || '').trim();
-      appScriptUrl = cleanUrl;
-      try {
-        localStorage.setItem(APPSCRIPT_URL_KEY, cleanUrl);
-      } catch (e) {}
+    function initUrlField() {
+      const input = document.getElementById('appsScriptUrlInput');
+      const savedUrl = getAppsScriptUrl();
+      input.value = savedUrl;
 
-      // Mantém os dois inputs (topo e modal) sempre espelhados
-      if (source !== 'top') {
-        const topInput = document.getElementById('top-appscript-url-input');
-        if (topInput) topInput.value = cleanUrl;
-      }
-      if (source !== 'modal') {
-        const modalInput = document.getElementById('modal-appscript-url-input');
-        if (modalInput) modalInput.value = cleanUrl;
-      }
-
-      updateSheetStatusUI(cleanUrl ? 'ready' : 'unconfigured');
-    }
-
-    function toggleTopSyncEditor(forceOpen = null) {
-      topUrlExpanded = forceOpen !== null ? forceOpen : !topUrlExpanded;
-      renderTopSyncBar();
-      if (topUrlExpanded) {
-        const inp = document.getElementById('top-appscript-url-input');
-        if (inp) inp.focus();
-      }
-    }
-
-    function renderTopSyncBar() {
-      const wrap = document.getElementById('top-url-input-wrap');
-      const badge = document.getElementById('top-url-badge');
-      const toggleBtn = document.getElementById('btn-toggle-top-url');
-
-      if (topUrlExpanded || !appScriptUrl) {
-        wrap.classList.remove('hidden');
-        toggleBtn.textContent = appScriptUrl ? 'Ocultar' : 'URL';
+      if (savedUrl) {
+        document.getElementById('sheetsBox').classList.add('collapsed');
+        setSyncStatus('ok', 'Conectado');
       } else {
-        wrap.classList.add('hidden');
-        toggleBtn.textContent = 'Editar URL';
+        setSyncStatus('', 'Configurar URL');
       }
 
-      if (appScriptUrl) {
-        const shortUrl = appScriptUrl.length > 42
-          ? appScriptUrl.slice(0, 28) + '...' + appScriptUrl.slice(-10)
-          : appScriptUrl;
-        badge.textContent = shortUrl;
-        badge.className = 'text-[11px] text-emerald-300/90 font-medium truncate';
-      } else {
-        badge.textContent = 'Cole a URL /exec para sincronizar';
-        badge.className = 'text-[11px] text-slate-400 truncate';
-      }
-    }
-
-    /**
-     * Atualiza o indicador visual de status de sincronização no cabeçalho (Planilha)
-     */
-    function updateSheetStatusUI(statusMode, customLabel = null) {
-      const dot = document.getElementById('header-sheet-dot');
-      const label = document.getElementById('header-sheet-status');
-      if (!dot || !label) return;
-
-      if (!appScriptUrl || statusMode === 'unconfigured') {
-        dot.className = 'w-2 h-2 rounded-full bg-slate-500';
-        label.textContent = 'Planilha: Não ligada';
-        label.className = 'text-[11px] font-semibold text-slate-400 tabular-nums';
-        return;
-      }
-
-      if (statusMode === 'syncing') {
-        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
-        label.textContent = customLabel || 'Planilha: Sincronizando...';
-        label.className = 'text-[11px] font-semibold text-amber-200 tabular-nums';
-        return;
-      }
-
-      if (statusMode === 'error') {
-        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
-        label.textContent = customLabel || 'Planilha: Falha na rede';
-        label.className = 'text-[11px] font-semibold text-rose-200 tabular-nums';
-        return;
-      }
-
-      // Estado 'ready' ou 'synced'
-      let savedTime = '';
-      try {
-        savedTime = localStorage.getItem(APPSCRIPT_LAST_SYNC_KEY) || '';
-      } catch (e) {}
-
-      dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-      label.textContent = customLabel || (savedTime ? `Planilha • ${savedTime}` : 'Planilha: Conectada');
-      label.className = 'text-[11px] font-semibold text-emerald-300 tabular-nums';
-    }
-
-    /* =========================================================================
-       SINCRONIZAÇÃO COM GOOGLE PLANILHAS (POST text/plain + no-cors & GET)
-       ========================================================================= */
-    function scheduleBackgroundSync() {
-      if (!appScriptUrl) return;
-      clearTimeout(autoSyncDebounceTimer);
-      autoSyncDebounceTimer = setTimeout(() => {
-        pushToGoogleSheet(true);
-      }, 950);
-    }
-
-    function getDeviceLabel() {
-      const ua = navigator.userAgent || '';
-      if (/iPhone/i.test(ua)) return 'iPhone 14 Pro / iOS';
-      if (/iPad/i.test(ua)) return 'iPad';
-      if (/Android/i.test(ua)) return 'Galaxy Tab / Android';
-      return 'Navegador Web';
-    }
-
-    /**
-     * Envia o estado atual da carteira para o Google Apps Script (POST text/plain com fallback no-cors)
-     */
-    async function pushToGoogleSheet(isBackground = false) {
-      const url = (appScriptUrl || '').trim();
-      if (!url) {
-        if (!isBackground) {
-          toggleTopSyncEditor(true);
-          showToast('Cole a URL /exec do Apps Script primeiro.', 'amber');
+      input.addEventListener('input', () => {
+        const val = input.value.trim();
+        localStorage.setItem(URL_STORAGE_KEY, val);
+        if (val) {
+          setSyncStatus('ok', 'URL Salva');
+        } else {
+          setSyncStatus('', 'Sem URL');
         }
+      });
+    }
+
+    function toggleSheetsBox() {
+      document.getElementById('sheetsBox').classList.toggle('collapsed');
+    }
+
+    function toggleSettings() {
+      const card = document.getElementById('settingsCard');
+      card.style.display = card.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function setSyncStatus(status, label) {
+      const dot = document.getElementById('syncDot');
+      dot.className = 'dot' + (status ? ' ' + status : '');
+      document.getElementById('syncLabel').textContent = label;
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+    }
+
+    function fmtBRL(v) {
+      return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    /**
+     * Motor de IA Local:
+     * 1. Trava Anti-Desbalanceamento: bloqueia ativos >= 40% se houver alternativa.
+     * 2. Oportunidade Rara P/VP: prioriza desconto forte (P/VP <= 0.84 ou 0.07 abaixo da média) desde que peso pós-compra <= 38.5%.
+     * 3. Rebalanceamento Normal: prioriza quem está mais abaixo da meta de 33,3%, desempatando pelo menor P/VP.
+     */
+    function computeAIRecommendation() {
+      const budget = Number(state.dailyBudget || 0);
+      const tickers = ['CPTS11', 'GARE11', 'SNAG11'];
+      const items = tickers.map(t => {
+        const h = state.holdings[t];
+        const value = h.qty * h.price;
+        const pvp = h.vp > 0 ? h.price / h.vp : 1;
+        return { ticker: t, ...h, value, pvp };
+      });
+
+      const totalValue = items.reduce((s, x) => s + x.value, 0);
+      const avgPvp = items.reduce((s, x) => s + x.pvp, 0) / items.length;
+
+      items.forEach(x => {
+        x.weight = totalValue > 0 ? (x.value / totalValue) * 100 : 33.33;
+        x.affordable = x.price > 0 ? Math.floor(budget / x.price) : 0;
+      });
+
+      const affordableItems = items.filter(x => x.affordable >= 1);
+      const pool = affordableItems.length > 0 ? affordableItems : items;
+
+      const underCap = pool.filter(x => x.weight < 40);
+      const candidates = underCap.length > 0 ? underCap : pool;
+      const capTriggered = underCap.length < pool.length;
+
+      let chosen = null;
+      let mode = 'EQ';
+      let reason = '';
+
+      const oppCandidates = candidates
+        .filter(x => (x.pvp <= 0.84 || (avgPvp - x.pvp) >= 0.07))
+        .filter(x => {
+          const buyVal = Math.max(1, x.affordable) * x.price;
+          const nextWeight = ((x.value + buyVal) / (totalValue + buyVal)) * 100;
+          return nextWeight <= 38.5;
+        })
+        .sort((a, b) => a.pvp - b.pvp);
+
+      if (totalValue > 0 && oppCandidates.length > 0 && oppCandidates[0].weight <= 35.5) {
+        chosen = oppCandidates[0];
+        mode = 'OPP';
+        reason = `Super desconto P/VP ${chosen.pvp.toFixed(2)} (vale aproveitar sem estourar 38%)`;
+      } else {
+        candidates.sort((a, b) => {
+          const diffW = a.weight - b.weight;
+          if (Math.abs(diffW) > 1.5) return diffW;
+          return a.pvp - b.pvp;
+        });
+        chosen = candidates[0];
+        if (capTriggered) {
+          mode = 'CAP';
+          reason = `Trava 40% ativa nos demais • P/VP ${chosen.pvp.toFixed(2)} • Peso ${chosen.weight.toFixed(1)}%`;
+        } else {
+          mode = 'EQ';
+          reason = totalValue === 0
+            ? `Início pelo menor P/VP (${chosen.pvp.toFixed(2)})`
+            : `Menor peso (${chosen.weight.toFixed(1)}% vs 33,3%) • P/VP ${chosen.pvp.toFixed(2)}`;
+        }
+      }
+
+      const qtyToBuy = Math.max(1, chosen.affordable);
+      const spent = chosen.affordable * chosen.price;
+      const change = Math.max(0, budget - spent);
+
+      return {
+        ticker: chosen.ticker,
+        price: chosen.price,
+        pvp: chosen.pvp,
+        affordable: chosen.affordable,
+        suggestedQty: qtyToBuy,
+        change,
+        mode,
+        reason
+      };
+    }
+
+    function renderAll() {
+      const budgetInput = document.getElementById('dailyBudgetInput');
+      if (document.activeElement !== budgetInput) {
+        budgetInput.value = state.dailyBudget;
+      }
+
+      document.querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('active', Math.abs(Number(c.dataset.val) - Number(state.dailyBudget)) < 0.01);
+      });
+
+      const rec = computeAIRecommendation();
+      currentRecommendation = rec;
+
+      const badge = document.getElementById('aiBadge');
+      if (rec.mode === 'OPP') {
+        badge.className = 'badge badge-opp';
+        badge.textContent = '🔥 OPORTUNIDADE P/VP';
+      } else if (rec.mode === 'CAP') {
+        badge.className = 'badge badge-cap';
+        badge.textContent = '🛡️ TRAVA 40%';
+      } else {
+        badge.className = 'badge badge-eq';
+        badge.textContent = '⚖️ EQUILÍBRIO';
+      }
+
+      document.getElementById('recTicker').textContent = rec.ticker;
+      document.getElementById('recCotas').textContent = rec.affordable > 0
+        ? `${rec.affordable} ${rec.affordable === 1 ? 'cota' : 'cotas'}`
+        : `Falta ${fmtBRL(rec.price - state.dailyBudget)}`;
+
+      const trocoTxt = rec.affordable > 0 ? ` • Sobram ${fmtBRL(rec.change)}` : '';
+      document.getElementById('recReason').textContent = rec.reason + trocoTxt;
+
+      document.getElementById('buyTicker').value = rec.ticker;
+      document.getElementById('buyQty').value = rec.suggestedQty;
+      document.getElementById('buyPrice').value = rec.price.toFixed(2);
+
+      const tickers = ['CPTS11', 'GARE11', 'SNAG11'];
+      let totalVal = 0;
+      let totalShares = 0;
+      let totalDiv = 0;
+
+      tickers.forEach(t => {
+        const h = state.holdings[t];
+        totalVal += h.qty * h.price;
+        totalShares += h.qty;
+        totalDiv += h.qty * h.div;
+      });
+
+      const listEl = document.getElementById('portfolioList');
+      listEl.innerHTML = tickers.map(t => {
+        const h = state.holdings[t];
+        const val = h.qty * h.price;
+        const pct = totalVal > 0 ? (val / totalVal) * 100 : 0;
+        const pvp = h.vp > 0 ? h.price / h.vp : 0;
+        return `
+          <div class="asset-item">
+            <div class="asset-top">
+              <div>
+                <span class="asset-name">${t}</span>
+                <span class="asset-meta"> • ${h.qty} cotas (PM ${fmtBRL(h.avgPrice)})</span>
+              </div>
+              <div style="text-align:right;">
+                <strong style="font-size:14px;">${pct.toFixed(1)}%</strong>
+                <span class="asset-meta"> • P/VP ${pvp.toFixed(2)}</span>
+              </div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${Math.min(100, pct)}%;"></div>
+              <div class="bar-target" title="Meta 33,3%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('statTotal').textContent = fmtBRL(totalVal);
+      document.getElementById('statShares').textContent = totalShares;
+      document.getElementById('statDiv').textContent = fmtBRL(totalDiv);
+
+      renderHistory();
+      renderEditors();
+    }
+
+    function renderHistory() {
+      const card = document.getElementById('historyCard');
+      const list = document.getElementById('historyList');
+      const purchases = state.purchases || [];
+      if (purchases.length === 0) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = 'block';
+      document.getElementById('histCount').textContent = `${purchases.length} registro(s)`;
+
+      const recent = [...purchases].reverse().slice(0, 10);
+      list.innerHTML = recent.map(p => `
+        <div class="hist-row">
+          <div>
+            <strong>+${p.qty} ${p.ticker}</strong>
+            <span style="color:var(--muted);"> a ${fmtBRL(p.price)} • ${p.date.split(',')[0]}</span>
+          </div>
+          <button class="del-btn" onclick="deletePurchase('${p.id}')" title="Remover lançamento">×</button>
+        </div>
+      `).join('');
+    }
+
+    function deletePurchase(id) {
+      const idx = state.purchases.findIndex(p => p.id === id);
+      if (idx === -1) return;
+      const removed = state.purchases[idx];
+      state.purchases.splice(idx, 1);
+
+      // Recalcula quantidade e preço médio do ativo com base nos registros restantes
+      const h = state.holdings[removed.ticker];
+      const remaining = state.purchases.filter(p => p.ticker === removed.ticker);
+      if (remaining.length > 0) {
+        const totQty = remaining.reduce((s, p) => s + p.qty, 0);
+        const totCost = remaining.reduce((s, p) => s + (p.qty * p.price), 0);
+        h.qty = totQty;
+        h.avgPrice = totQty > 0 ? totCost / totQty : 0;
+      } else {
+        h.qty = Math.max(0, h.qty - removed.qty);
+        if (h.qty === 0) h.avgPrice = 0;
+      }
+
+      saveState(true);
+      showToast('Lançamento removido');
+    }
+
+    function renderEditors() {
+      const container = document.getElementById('assetEditors');
+      const tickers = ['CPTS11', 'GARE11', 'SNAG11'];
+      container.innerHTML = tickers.map(t => {
+        const h = state.holdings[t];
+        return `
+          <div class="edit-grid">
+            <span>${t}</span>
+            <input type="number" step="0.01" value="${h.price}" onchange="updateAssetField('${t}','price',this.value)" />
+            <input type="number" step="0.01" value="${h.vp}" onchange="updateAssetField('${t}','vp',this.value)" />
+            <input type="number" step="0.001" value="${h.div}" onchange="updateAssetField('${t}','div',this.value)" />
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateAssetField(ticker, field, val) {
+      const num = parseFloat(val);
+      if (!isNaN(num) && num >= 0) {
+        state.holdings[ticker][field] = num;
+        saveState(true);
+        showToast(`${ticker} atualizado`);
+      }
+    }
+
+    function setBudget(val) {
+      state.dailyBudget = Number(val);
+      document.getElementById('dailyBudgetInput').value = state.dailyBudget;
+      saveState(true);
+    }
+
+    document.getElementById('dailyBudgetInput').addEventListener('change', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val >= 0) {
+        state.dailyBudget = val;
+        saveState(true);
+        showToast('Aporte diário salvo');
+      }
+    });
+
+    document.getElementById('buyTicker').addEventListener('change', (e) => {
+      const t = e.target.value;
+      const h = state.holdings[t];
+      document.getElementById('buyPrice').value = h.price.toFixed(2);
+      const q = h.price > 0 ? Math.max(1, Math.floor(state.dailyBudget / h.price)) : 1;
+      document.getElementById('buyQty').value = q;
+    });
+
+    function registerPurchase() {
+      const ticker = document.getElementById('buyTicker').value;
+      const qty = parseInt(document.getElementById('buyQty').value, 10);
+      const price = parseFloat(document.getElementById('buyPrice').value);
+
+      if (!ticker || isNaN(qty) || qty <= 0 || isNaN(price) || price <= 0) {
+        showToast('Preencha quantidade e preço válidos');
         return;
       }
 
-      updateSheetStatusUI('syncing', isBackground ? 'Planilha: Salvando...' : 'Planilha: Enviando...');
+      const h = state.holdings[ticker];
+      const prevTotal = h.qty * h.avgPrice;
+      const newTotal = prevTotal + (qty * price);
+      const nextQty = h.qty + qty;
 
-      const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      h.qty = nextQty;
+      h.avgPrice = nextQty > 0 ? newTotal / nextQty : price;
+      h.price = price;
+
+      const pvp = h.vp > 0 ? Number((price / h.vp).toFixed(3)) : 0;
+      const now = new Date().toLocaleString('pt-BR');
+      const device = /iPhone|iPad/i.test(navigator.userAgent)
+        ? 'iPhone/iOS'
+        : (/Android/i.test(navigator.userAgent) ? 'Tablet/Android' : 'PC');
+
+      state.purchases.push({
+        id: 'OP-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        date: now,
+        ticker,
+        qty,
+        price,
+        pvp,
+        reason: currentRecommendation && currentRecommendation.ticker === ticker ? currentRecommendation.mode : 'MANUAL',
+        device
+      });
+
+      if (state.purchases.length > 250) {
+        state.purchases = state.purchases.slice(-250);
+      }
+
+      saveState(true);
+      showToast(`✓ +${qty} ${ticker} registrado!`);
+    }
+
+    async function syncToSheets(manual = false) {
+      const url = getAppsScriptUrl();
+      if (!url) {
+        if (manual) showToast('Cole a URL do Apps Script primeiro');
+        return;
+      }
+
+      setSyncStatus('busy', 'Sincronizando...');
       const payload = {
-        action: 'sync',
-        updatedAt: new Date().toISOString(),
-        device: getDeviceLabel(),
-        state: state
+        state,
+        purchases: state.purchases.slice(-40)
       };
 
       try {
-        // Tentativa 1: POST com text/plain para evitar preflight CORS OPTIONS
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
-
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-
-        // Tenta ler confirmação JSON se o navegador liberar a resposta após o redirect 302
-        try {
-          const data = await res.json();
-          if (data && data.ok === false) {
-            throw new Error(data.error || 'Erro no Apps Script');
-          }
-        } catch (parseErr) {
-          // Resposta opaca ou redirecionada com sucesso HTTP 200
+        const data = await res.json();
+        if (data && data.status === 'ok') {
+          state.lastSyncedAt = data.syncedAt || new Date().toLocaleTimeString('pt-BR');
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          setSyncStatus('ok', 'Salvo');
+          document.getElementById('lastSyncText').textContent = 'Sync: ' + state.lastSyncedAt;
+          if (manual) showToast('✓ Sincronizado com Google Planilhas!');
+        } else {
+          throw new Error((data && data.message) || 'Erro na resposta');
         }
-
-        try { localStorage.setItem(APPSCRIPT_LAST_SYNC_KEY, nowTime); } catch (e) {}
-        updateSheetStatusUI('synced', `Planilha • ${nowTime}`);
-        if (!isBackground) {
-          showToast(`Enviado para a Planilha (${nowTime})!`, 'emerald');
-        }
-      } catch (primaryErr) {
-        // Fallback obrigatório: mode: 'no-cors' para contornar bloqueio de redirect 302 do Safari iOS
+      } catch (err) {
         try {
           await fetch(url, {
             method: 'POST',
@@ -1037,839 +1069,66 @@ function jsonResponse(obj) {
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
           });
-
-          try { localStorage.setItem(APPSCRIPT_LAST_SYNC_KEY, nowTime); } catch (e) {}
-          updateSheetStatusUI('synced', `Planilha • ${nowTime}`);
-          if (!isBackground) {
-            showToast(`Enviado para a Planilha (${nowTime})!`, 'emerald');
-          }
-        } catch (fallbackErr) {
-          updateSheetStatusUI('error', 'Planilha: Offline');
-          if (!isBackground) {
-            showToast('Sem conexão com a Planilha agora. Salvo localmente.', 'amber');
-          }
+          setSyncStatus('ok', 'Enviado');
+          if (manual) showToast('✓ Enviado para a Planilha!');
+        } catch (e2) {
+          setSyncStatus('err', 'Offline');
+          if (manual) showToast('Salvo local (sem internet)');
         }
       }
     }
 
-    /**
-     * Puxa os dados salvos na Planilha Google (GET) para sincronizar entre iPhone e Tablet
-     */
-    async function pullFromGoogleSheet() {
-      const url = (appScriptUrl || '').trim();
+    async function pullFromSheets() {
+      const url = getAppsScriptUrl();
       if (!url) {
-        toggleTopSyncEditor(true);
-        showToast('Cole a URL /exec do Apps Script primeiro.', 'amber');
+        showToast('Cole a URL do Apps Script primeiro');
         return;
       }
-
-      updateSheetStatusUI('syncing', 'Planilha: Puxando...');
-
+      setSyncStatus('busy', 'Buscando...');
       try {
-        const separator = url.includes('?') ? '&' : '?';
-        const getUrl = `${url}${separator}action=get&t=${Date.now()}`;
-
-        const res = await fetch(getUrl, {
-          method: 'GET',
-          cache: 'no-store'
-        });
-
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const res = await fetch(url + '?t=' + Date.now());
         const data = await res.json();
-
-        if (data && data.ok === false) {
-          updateSheetStatusUI('ready');
-          showToast(data.error || 'Planilha ainda sem dados salvos.', 'amber');
-          return;
-        }
-
-        const remoteState = (data && data.state) ? data.state : data;
-        if (!remoteState || !remoteState.funds) {
-          throw new Error('Formato inesperado');
-        }
-
-        state = sanitizeState(remoteState);
-        saveToStorage();
-
-        const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        try { localStorage.setItem(APPSCRIPT_LAST_SYNC_KEY, nowTime); } catch (e) {}
-
-        document.getElementById('daily-amount-input').value = state.dailyAmount.toFixed(2);
-        if (!document.getElementById('settings-modal').classList.contains('hidden')) {
-          renderSettingsForm();
-        }
-        triggerAiAnalysis(false);
-        updateSheetStatusUI('synced', `Planilha • ${nowTime}`);
-        showToast('Dados sincronizados da Planilha!', 'emerald');
-      } catch (err) {
-        updateSheetStatusUI('error', 'Planilha: Erro GET');
-        showToast('Não foi possível puxar da Planilha. Verifique a URL /exec.', 'amber');
-      }
-    }
-
-    /**
-     * Copia o código Google Apps Script (.gs) para o usuário colar na Planilha
-     */
-    function copyAppsScriptCode() {
-      const ta = document.createElement('textarea');
-      ta.value = GOOGLE_APPS_SCRIPT_GS;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand('copy');
-        showToast('Código .gs copiado! Cole em Extensões > Apps Script.', 'emerald');
-      } catch (e) {
-        showToast('Não foi possível copiar o código .gs.', 'amber');
-      }
-      document.body.removeChild(ta);
-    }
-
-    /* =========================================================================
-       UTILITÁRIOS DE FORMATAÇÃO E TOAST iOS (ZERO ALERT / CONFIRM)
-       ========================================================================= */
-    function formatBRL(value) {
-      return Number(value || 0).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      });
-    }
-
-    function formatPVP(value) {
-      return Number(value || 0).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-    }
-
-    let toastTimeout = null;
-    function showToast(message, tone = 'emerald') {
-      const pill = document.getElementById('toast-pill');
-      const dot = document.getElementById('toast-dot');
-      const text = document.getElementById('toast-text');
-
-      text.textContent = message;
-      dot.className = 'w-2.5 h-2.5 rounded-full shrink-0 ' + (
-        tone === 'emerald' ? 'bg-emerald-400' :
-        tone === 'amber' ? 'bg-amber-400' : 'bg-cyan-400'
-      );
-
-      pill.classList.remove('opacity-0', '-translate-y-5');
-      pill.classList.add('opacity-100', 'translate-y-0');
-
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        pill.classList.remove('opacity-100', 'translate-y-0');
-        pill.classList.add('opacity-0', '-translate-y-5');
-      }, 2600);
-    }
-
-    /* =========================================================================
-       MOTOR DE IA LOCAL DE BALANCEAMENTO + OPORTUNIDADE
-       ========================================================================= */
-    function computeAiDecision() {
-      const dailyAmount = Math.max(0, Number(state.dailyAmount) || 0);
-
-      // Passo 1: Calcula métricas atuais de cada fundo
-      const items = TICKERS.map((tk) => {
-        const f = state.funds[tk];
-        const pvp = f.price / f.vp;
-        const currentValue = f.shares * f.price;
-        return {
-          ...f,
-          pvp,
-          currentValue,
-          weight: 0
-        };
-      });
-
-      const totalEquity = items.reduce((acc, item) => acc + item.currentValue, 0);
-
-      items.forEach((item) => {
-        item.weight = totalEquity > 0 ? (item.currentValue / totalEquity) * 100 : 0;
-      });
-
-      let chosen = null;
-      let mode = 'EQUILIBRIO'; // 'EQUILIBRIO' | 'OPORTUNIDADE' | 'TRAVA'
-      let reason = '';
-
-      // Passo 2: Início da carteira (Patrimônio < R$ 150,00)
-      if (totalEquity < 150.0) {
-        const sortedStart = [...items].sort((a, b) => {
-          if (Math.abs(a.currentValue - b.currentValue) > 1.0) {
-            return a.currentValue - b.currentValue;
-          }
-          if (a.shares !== b.shares) {
-            return a.shares - b.shares;
-          }
-          return a.pvp - b.pvp;
-        });
-
-        chosen = sortedStart[0];
-        mode = 'EQUILIBRIO';
-        reason = totalEquity === 0
-          ? `Início da carteira: ${chosen.ticker} tem o menor P/VP (${formatPVP(chosen.pvp)}) para abrir seus aportes com desconto.`
-          : `Base inicial (< R$ 150): priorizando ${chosen.ticker} (${chosen.shares} cotas, P/VP ${formatPVP(chosen.pvp)}) para equilibrar o trio.`;
-      } else {
-        // Passo 3: Patrimônio >= R$ 150,00 -> Regras de Equilíbrio, Oportunidade e Trava 40%
-        const cheapestOverall = [...items].sort((a, b) => a.pvp - b.pvp)[0];
-
-        // Fundos elegíveis abaixo do teto de segurança de 40%
-        const eligible = items.filter((item) => item.weight < 40.0);
-        const pool = eligible.length > 0 ? eligible : items;
-
-        // Verifica Super Desconto entre os elegíveis
-        const superDiscounts = pool.filter((item) => {
-          const others = items.filter((o) => o.ticker !== item.ticker);
-          const avgOthersPvp = others.reduce((sum, o) => sum + o.pvp, 0) / others.length;
-          const isSuperCheap = item.pvp <= 0.84 || (avgOthersPvp - item.pvp) >= 0.07;
-          if (!isSuperCheap) return false;
-
-          const sharesToday = Math.floor(dailyAmount / item.price);
-          const addedVal = sharesToday * item.price;
-          const projectedWeight = ((item.currentValue + addedVal) / (totalEquity + addedVal)) * 100;
-
-          return item.weight < 40.0 && projectedWeight <= 42.0;
-        });
-
-        if (superDiscounts.length > 0) {
-          superDiscounts.sort((a, b) => a.pvp - b.pvp);
-          chosen = superDiscounts[0];
-          mode = 'OPORTUNIDADE';
-          reason = `${chosen.ticker} está em super desconto (P/VP ${formatPVP(chosen.pvp)}) e com peso seguro (${chosen.weight.toFixed(1)}% < 40%). Vale aproveitar!`;
-        } else {
-          const byWeight = [...pool].sort((a, b) => {
-            if (Math.abs(a.weight - b.weight) < 2.0) {
-              return a.pvp - b.pvp;
+        if (data && data.status === 'ok' && data.state) {
+          state = {
+            ...structuredClone(DEFAULT_STATE),
+            ...data.state,
+            holdings: {
+              ...structuredClone(DEFAULT_STATE.holdings),
+              ...(data.state.holdings || {})
             }
-            return a.weight - b.weight;
-          });
-
-          chosen = byWeight[0];
-          const cheapestWasLocked = cheapestOverall.ticker !== chosen.ticker && cheapestOverall.weight >= 40.0;
-
-          if (cheapestWasLocked) {
-            mode = 'TRAVA';
-            reason = `${cheapestOverall.ticker} atingiu ${cheapestOverall.weight.toFixed(1)}% (teto 40%). Compra bloqueada nele e redirecionada para ${chosen.ticker} (${chosen.weight.toFixed(1)}%).`;
-          } else {
-            mode = 'EQUILIBRIO';
-            reason = `${chosen.ticker} está mais atrasado na meta (${chosen.weight.toFixed(1)}% vs 33,3%) com P/VP ${formatPVP(chosen.pvp)}, mantendo a carteira simétrica.`;
-          }
-        }
-      }
-
-      // Passo 4: Calcula cotas inteiras, custo, troco e oportunidade de troco
-      const sharesToBuy = chosen.price > 0 ? Math.floor(dailyAmount / chosen.price) : 0;
-      const totalCost = sharesToBuy * chosen.price;
-      const leftoverChange = Math.max(0, dailyAmount - totalCost);
-
-      let extraTip = null;
-      if (leftoverChange > 0) {
-        const underweightCandidates = items
-          .filter((item) => item.weight < 35.0 && leftoverChange >= item.price)
-          .sort((a, b) => a.weight - b.weight || a.pvp - b.pvp);
-
-        if (underweightCandidates.length > 0) {
-          const extraFund = underweightCandidates[0];
-          const extraQty = Math.floor(leftoverChange / extraFund.price);
-          if (extraQty >= 1) {
-            extraTip = `⚡ Troco inteligente: com os ${formatBRL(leftoverChange)} que sobram, você ainda compra +${extraQty} cota${extraQty > 1 ? 's' : ''} de ${extraFund.ticker} (${formatBRL(extraFund.price)})!`;
-          }
-        }
-      }
-
-      return {
-        chosen,
-        mode,
-        reason,
-        sharesToBuy,
-        totalCost,
-        leftoverChange,
-        extraTip,
-        items,
-        totalEquity
-      };
-    }
-
-    /* =========================================================================
-       AÇÕES DO USUÁRIO: APORTE, ANÁLISE DA IA E REGISTRO DE COMPRA
-       ========================================================================= */
-    function onDailyAmountChange(rawVal) {
-      const num = parseFloat(String(rawVal).replace(',', '.'));
-      if (!isNaN(num) && num >= 0) {
-        state.dailyAmount = num;
-        saveToStorage();
-        triggerAiAnalysis(false);
-        scheduleBackgroundSync();
-      }
-    }
-
-    function applyDailyPreset(amount) {
-      state.dailyAmount = amount;
-      const input = document.getElementById('daily-amount-input');
-      input.value = amount.toFixed(2);
-      saveToStorage();
-      triggerAiAnalysis(false);
-      scheduleBackgroundSync();
-    }
-
-    function triggerAiAnalysis(withFeedback = false) {
-      lastAiDecision = computeAiDecision();
-
-      state.selectedRegTicker = lastAiDecision.chosen.ticker;
-      const qtyInput = document.getElementById('reg-qty-input');
-      const priceInput = document.getElementById('reg-price-input');
-
-      qtyInput.value = Math.max(1, lastAiDecision.sharesToBuy);
-      priceInput.value = lastAiDecision.chosen.price.toFixed(2);
-
-      renderAll();
-
-      if (withFeedback) {
-        const card = document.getElementById('verdict-card');
-        card.classList.add('scale-[1.015]');
-        setTimeout(() => card.classList.remove('scale-[1.015]'), 200);
-        showToast(`IA recomenda: ${lastAiDecision.sharesToBuy}x ${lastAiDecision.chosen.ticker}`, 'emerald');
-      }
-    }
-
-    function selectRegisterTicker(ticker, resetPriceAndQty = true) {
-      state.selectedRegTicker = ticker;
-      const fund = state.funds[ticker];
-      if (resetPriceAndQty && fund) {
-        document.getElementById('reg-price-input').value = fund.price.toFixed(2);
-        const suggestedQty = Math.max(1, Math.floor((state.dailyAmount || 0) / fund.price));
-        document.getElementById('reg-qty-input').value = suggestedQty;
-      }
-      saveToStorage();
-      renderRegisterTabs();
-      updateRegisterSubtotal();
-    }
-
-    function stepRegisterQty(delta) {
-      const qtyInput = document.getElementById('reg-qty-input');
-      const current = parseInt(qtyInput.value, 10) || 1;
-      const next = Math.max(1, current + delta);
-      qtyInput.value = next;
-      updateRegisterSubtotal();
-    }
-
-    function updateRegisterSubtotal() {
-      const qty = Math.max(0, parseInt(document.getElementById('reg-qty-input').value, 10) || 0);
-      const price = Math.max(0, parseFloat(String(document.getElementById('reg-price-input').value).replace(',', '.')) || 0);
-      const sub = qty * price;
-      document.getElementById('reg-subtotal').textContent = `Total: ${formatBRL(sub)}`;
-    }
-
-    /**
-     * Salva a compra realizada na carteira, recalcula preço médio e envia automático para a Planilha
-     */
-    function savePurchaseToPortfolio() {
-      const ticker = state.selectedRegTicker;
-      const fund = state.funds[ticker];
-      const qty = parseInt(document.getElementById('reg-qty-input').value, 10);
-      const pricePaid = parseFloat(String(document.getElementById('reg-price-input').value).replace(',', '.'));
-
-      if (!fund || isNaN(qty) || qty < 1 || isNaN(pricePaid) || pricePaid <= 0) {
-        showToast('Informe quantidade e preço válidos.', 'amber');
-        return;
-      }
-
-      const prevShares = fund.shares;
-      const prevCostBasis = prevShares * fund.avgPrice;
-      const newCostBasis = qty * pricePaid;
-      const updatedShares = prevShares + qty;
-      const updatedAvgPrice = (prevCostBasis + newCostBasis) / updatedShares;
-
-      fund.shares = updatedShares;
-      fund.avgPrice = Number(updatedAvgPrice.toFixed(4));
-
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) +
-        ' ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-      state.history.unshift({
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        ticker,
-        qty,
-        pricePaid,
-        total: Number((qty * pricePaid).toFixed(2)),
-        dateStr
-      });
-
-      saveToStorage();
-      showToast(`+${qty} ${qty === 1 ? 'cota' : 'cotas'} de ${ticker} salva${qty === 1 ? '' : 's'}!`, 'emerald');
-
-      triggerAiAnalysis(false);
-      // Envio automático imediato em segundo plano para o Google Planilhas
-      pushToGoogleSheet(true);
-    }
-
-    /**
-     * Exclui uma compra do histórico, recalcula cotas/preço médio e sincroniza em segundo plano
-     */
-    function deletePurchase(txId) {
-      const idx = state.history.findIndex((tx) => tx.id === txId);
-      if (idx === -1) return;
-
-      const removed = state.history[idx];
-      state.history.splice(idx, 1);
-
-      const fund = state.funds[removed.ticker];
-      if (fund) {
-        const remainingTxs = state.history.filter((tx) => tx.ticker === removed.ticker);
-        if (remainingTxs.length > 0) {
-          const totalQty = remainingTxs.reduce((s, t) => s + t.qty, 0);
-          const totalSpent = remainingTxs.reduce((s, t) => s + t.total, 0);
-          fund.shares = totalQty;
-          fund.avgPrice = totalQty > 0 ? Number((totalSpent / totalQty).toFixed(4)) : fund.price;
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          renderAll();
+          setSyncStatus('ok', 'Atualizado');
+          document.getElementById('lastSyncText').textContent = 'Puxado: ' + (data.syncedAt || 'agora');
+          showToast('✓ Carteira restaurada da Planilha!');
         } else {
-          fund.shares = Math.max(0, fund.shares - removed.qty);
-          if (fund.shares === 0) fund.avgPrice = fund.price;
+          setSyncStatus('ok', 'Vazio');
+          showToast(data.message || 'Planilha ainda sem dados');
         }
-      }
-
-      saveToStorage();
-      showToast(`Compra de ${removed.ticker} removida.`, 'cyan');
-      triggerAiAnalysis(false);
-      pushToGoogleSheet(true);
-    }
-
-    /* =========================================================================
-       RENDERIZAÇÃO DA INTERFACE
-       ========================================================================= */
-    function renderAll() {
-      if (!lastAiDecision) lastAiDecision = computeAiDecision();
-
-      renderTopSyncBar();
-      renderPresets();
-      renderVerdictCard();
-      renderRegisterTabs();
-      updateRegisterSubtotal();
-      renderBalancePanel();
-      renderRecentHistory();
-    }
-
-    function renderPresets() {
-      const val = Number(state.dailyAmount);
-      const btn300 = document.getElementById('preset-btn-300');
-      const btn400 = document.getElementById('preset-btn-400');
-
-      const activeStyle = 'bg-emerald-500/20 border-emerald-400/50 text-emerald-200';
-      const normalStyle = 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10';
-
-      btn300.className = `min-h-[46px] rounded-2xl px-3 py-2 text-xs font-bold tabular-nums border transition flex items-center justify-center ${
-        Math.abs(val - 30.27) < 0.01 ? activeStyle : normalStyle
-      }`;
-      btn400.className = `min-h-[46px] rounded-2xl px-3 py-2 text-xs font-bold tabular-nums border transition flex items-center justify-center ${
-        Math.abs(val - 40.33) < 0.01 ? activeStyle : normalStyle
-      }`;
-    }
-
-    function renderVerdictCard() {
-      const d = lastAiDecision;
-      const card = document.getElementById('verdict-card');
-      const badge = document.getElementById('ai-mode-badge');
-
-      card.classList.remove('glass-verdict', 'glass-verdict-opportunity', 'glass-verdict-lock');
-      if (d.mode === 'OPORTUNIDADE') {
-        card.classList.add('glass-verdict', 'glass-verdict-opportunity');
-        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-amber-400/20 text-amber-200 border border-amber-300/35';
-        badge.textContent = '🔥 OPORTUNIDADE';
-      } else if (d.mode === 'TRAVA') {
-        card.classList.add('glass-verdict', 'glass-verdict-lock');
-        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-sky-400/20 text-sky-200 border border-sky-300/35';
-        badge.textContent = '🛡️ TRAVA ANTI-DESBALANCEAMENTO';
-      } else {
-        card.classList.add('glass-verdict');
-        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-400/20 text-emerald-200 border border-emerald-300/30';
-        badge.textContent = '⚖️ EQUILÍBRIO';
-      }
-
-      document.getElementById('ai-rec-ticker').textContent = d.chosen.ticker;
-      document.getElementById('ai-rec-pvp').textContent = `P/VP ${formatPVP(d.chosen.pvp)}`;
-      document.getElementById('ai-rec-shares').textContent = `${d.sharesToBuy} ${d.sharesToBuy === 1 ? 'cota' : 'cotas'}`;
-      document.getElementById('ai-rec-reason').textContent = d.reason;
-      document.getElementById('ai-rec-cost').textContent = formatBRL(d.totalCost);
-      document.getElementById('ai-rec-change').textContent = formatBRL(d.leftoverChange);
-
-      const extraBox = document.getElementById('ai-extra-tip');
-      if (d.extraTip) {
-        extraBox.classList.remove('hidden');
-        extraBox.textContent = d.extraTip;
-      } else {
-        extraBox.classList.add('hidden');
+      } catch (err) {
+        setSyncStatus('err', 'Erro GET');
+        showToast('Não foi possível ler a planilha');
       }
     }
 
-    function renderRegisterTabs() {
-      TICKERS.forEach((tk) => {
-        const btn = document.getElementById(`reg-tab-${tk}`);
-        const isSelected = state.selectedRegTicker === tk;
-        btn.className = `min-h-[46px] rounded-2xl text-xs font-extrabold border transition ${
-          isSelected
-            ? 'bg-emerald-500/25 border-emerald-400/55 text-white shadow-inner'
-            : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
-        }`;
-      });
+    function exportBackup() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'backup_carteira_fiis.json';
+      a.click();
     }
 
-    function renderBalancePanel() {
-      const d = lastAiDecision;
-      const container = document.getElementById('balance-bars-container');
-
-      let totalShares = 0;
-      let totalEquity = 0;
-      let estMonthlyIncome = 0;
-
-      container.innerHTML = d.items.map((item) => {
-        totalShares += item.shares;
-        totalEquity += item.currentValue;
-        estMonthlyIncome += item.shares * item.dividend;
-
-        const w = item.weight;
-        let barColor = 'bg-cyan-400';
-        let weightTextColor = 'text-cyan-300';
-        if (w >= 28 && w <= 38) {
-          barColor = 'bg-emerald-400';
-          weightTextColor = 'text-emerald-300';
-        } else if (w > 38) {
-          barColor = 'bg-amber-400';
-          weightTextColor = 'text-amber-300';
-        }
-
-        const visualPct = Math.min(100, (w / 60) * 100);
-
-        return `
-          <div class="space-y-1.5">
-            <div class="flex items-baseline justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-extrabold text-white">${item.ticker}</span>
-                <span class="text-xs font-semibold text-slate-300 tabular-nums">${item.shares} ${item.shares === 1 ? 'cota' : 'cotas'}</span>
-                <span class="text-[11px] text-slate-400 tabular-nums">• P/VP ${formatPVP(item.pvp)}</span>
-              </div>
-              <div class="text-right tabular-nums">
-                <span class="text-xs font-bold text-white">${formatBRL(item.currentValue)}</span>
-                <span class="text-xs font-extrabold ${weightTextColor} ml-1.5">${w.toFixed(1)}%</span>
-              </div>
-            </div>
-
-            <div class="relative w-full h-2.5 rounded-full bg-black/45 overflow-visible">
-              <div class="h-full rounded-full ${barColor} transition-all duration-300" style="width: ${visualPct}%"></div>
-              <div title="Meta 33,3%" class="absolute top-[-3px] bottom-[-3px] w-[2px] bg-white/85 rounded-full shadow" style="left: 55.55%"></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      document.getElementById('summary-total-shares').textContent = totalShares;
-      document.getElementById('summary-total-equity').textContent = formatBRL(totalEquity);
-      document.getElementById('summary-monthly-income').textContent = formatBRL(estMonthlyIncome);
-
-      const goalPct = Math.min(100, (estMonthlyIncome / 300) * 100);
-      document.getElementById('goal-300-pct').textContent = `${goalPct.toFixed(1)}%`;
-      document.getElementById('goal-300-bar').style.width = `${goalPct}%`;
+    function resetDemo() {
+      if (!confirm('Zerar todas as cotas salvas neste aparelho?')) return;
+      state = structuredClone(DEFAULT_STATE);
+      saveState(false);
+      showToast('Carteira zerada');
     }
 
-    function renderRecentHistory() {
-      const list = document.getElementById('recent-purchases-list');
-      const countLabel = document.getElementById('history-count-label');
-      const totalCount = state.history.length;
-
-      countLabel.textContent = `${totalCount} ${totalCount === 1 ? 'registro' : 'registros'}`;
-
-      if (totalCount === 0) {
-        list.innerHTML = `
-          <div class="rounded-2xl bg-black/20 border border-white/5 px-3.5 py-4 text-center text-xs text-slate-400">
-            Nenhuma compra registrada ainda. Use o botão verde acima após comprar na corretora.
-          </div>
-        `;
-        return;
-      }
-
-      const lastFour = state.history.slice(0, 4);
-      list.innerHTML = lastFour.map((tx) => `
-        <div class="flex items-center justify-between gap-2 rounded-2xl bg-black/25 border border-white/5 pl-3.5 pr-1.5 py-1.5">
-          <div class="min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-extrabold text-white">${tx.ticker}</span>
-              <span class="text-xs font-semibold text-emerald-300 tabular-nums">+${tx.qty} ${tx.qty === 1 ? 'cota' : 'cotas'}</span>
-              <span class="text-[11px] text-slate-400 tabular-nums">a ${formatBRL(tx.pricePaid)}</span>
-            </div>
-            <div class="text-[10px] text-slate-400 tabular-nums mt-0.5">
-              Total ${formatBRL(tx.total)} • ${tx.dateStr}
-            </div>
-          </div>
-
-          <button type="button" onclick="deletePurchase('${tx.id}')" aria-label="Excluir compra"
-            class="min-h-[46px] min-w-[46px] rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 active:scale-95 flex items-center justify-center text-sm font-bold transition shrink-0">
-            ✕
-          </button>
-        </div>
-      `).join('');
-    }
-
-    /* =========================================================================
-       MODAL DA ENGRENAGEM (⚙️): EDIÇÃO DE COTAÇÕES/VP, B3, PLANILHA E BACKUP
-       ========================================================================= */
-    function openSettingsModal() {
-      document.getElementById('modal-appscript-url-input').value = appScriptUrl;
-      renderSettingsForm();
-      document.getElementById('import-json-box').classList.add('hidden');
-      document.getElementById('settings-modal').classList.remove('hidden');
-    }
-
-    function closeSettingsModal() {
-      document.getElementById('settings-modal').classList.add('hidden');
-      const currentFund = state.funds[state.selectedRegTicker];
-      if (currentFund) {
-        document.getElementById('reg-price-input').value = currentFund.price.toFixed(2);
-      }
-      triggerAiAnalysis(false);
-    }
-
-    function renderSettingsForm() {
-      const container = document.getElementById('settings-assets-form');
-      container.innerHTML = TICKERS.map((tk) => {
-        const f = state.funds[tk];
-        const pvp = f.price / f.vp;
-        return `
-          <div class="rounded-2xl bg-white/5 border border-white/10 p-3 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold text-white">${f.ticker} <span class="font-normal text-slate-400">• ${f.name}</span></span>
-              <span id="modal-pvp-${tk}" class="text-xs font-bold text-emerald-300 tabular-nums">P/VP ${formatPVP(pvp)}</span>
-            </div>
-            <div class="grid grid-cols-3 gap-2">
-              <div>
-                <label class="block text-[10px] text-slate-400 mb-1">Cotação (R$)</label>
-                <input type="number" step="0.01" min="0.01" inputmode="decimal"
-                  value="${f.price.toFixed(2)}"
-                  oninput="updateFundParam('${tk}', 'price', this.value)"
-                  class="ios-field w-full min-h-[44px] rounded-xl px-2.5 text-sm font-bold tabular-nums" />
-              </div>
-              <div>
-                <label class="block text-[10px] text-slate-400 mb-1">VP (R$)</label>
-                <input type="number" step="0.01" min="0.01" inputmode="decimal"
-                  value="${f.vp.toFixed(2)}"
-                  oninput="updateFundParam('${tk}', 'vp', this.value)"
-                  class="ios-field w-full min-h-[44px] rounded-xl px-2.5 text-sm font-bold tabular-nums" />
-              </div>
-              <div>
-                <label class="block text-[10px] text-slate-400 mb-1">Dividendo (R$)</label>
-                <input type="number" step="0.001" min="0" inputmode="decimal"
-                  value="${f.dividend}"
-                  oninput="updateFundParam('${tk}', 'dividend', this.value)"
-                  class="ios-field w-full min-h-[44px] rounded-xl px-2.5 text-sm font-bold tabular-nums" />
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    /**
-     * Atualiza cotação, VP ou dividendo, salva localmente e dispara envio automático
-     */
-    function updateFundParam(ticker, field, rawVal) {
-      const val = parseFloat(String(rawVal).replace(',', '.'));
-      if (!isNaN(val) && val > 0) {
-        state.funds[ticker][field] = val;
-        saveToStorage();
-        const pvp = state.funds[ticker].price / state.funds[ticker].vp;
-        const pvpLabel = document.getElementById(`modal-pvp-${ticker}`);
-        if (pvpLabel) pvpLabel.textContent = `P/VP ${formatPVP(pvp)}`;
-        lastAiDecision = computeAiDecision();
-        renderAll();
-        scheduleBackgroundSync();
-      }
-    }
-
-    /**
-     * Busca opcional de cotações da B3 via Yahoo Finance com timeout estrito de 2.5s
-     */
-    async function fetchSingleQuoteB3(ticker, timeoutMs = 2500) {
-      const target = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA?interval=1d&range=1d`;
-      const proxies = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`,
-        `https://corsproxy.io/?${encodeURIComponent(target)}`
-      ];
-
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-      try {
-        const reqs = proxies.map(async (url) => {
-          const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
-          if (!res.ok) throw new Error('Falha HTTP');
-          const json = await res.json();
-          const price = json?.chart?.result?.[0]?.meta?.regularMarketPrice;
-          if (typeof price === 'number' && price > 0) return Number(price.toFixed(2));
-          throw new Error('Payload inválido');
-        });
-        const result = await Promise.any(reqs);
-        clearTimeout(timer);
-        return result;
-      } catch (e) {
-        clearTimeout(timer);
-        return null;
-      }
-    }
-
-    async function fetchQuotesFromB3() {
-      const btn = document.getElementById('btn-fetch-b3');
-      const spin = document.getElementById('b3-spin-icon');
-      const txt = document.getElementById('btn-fetch-b3-text');
-
-      btn.disabled = true;
-      spin.classList.remove('hidden');
-      txt.textContent = 'Buscando na B3...';
-
-      const prices = await Promise.all(TICKERS.map((tk) => fetchSingleQuoteB3(tk, 2500)));
-      let updated = 0;
-
-      TICKERS.forEach((tk, idx) => {
-        if (prices[idx] !== null) {
-          state.funds[tk].price = prices[idx];
-          updated++;
-        }
-      });
-
-      btn.disabled = false;
-      spin.classList.add('hidden');
-      txt.textContent = '↻ Buscar Cotações B3 (Opcional)';
-
-      if (updated > 0) {
-        saveToStorage();
-        renderSettingsForm();
-        triggerAiAnalysis(false);
-        scheduleBackgroundSync();
-        showToast(`${updated}/3 cotações B3 atualizadas!`, 'emerald');
-      } else {
-        showToast('Sem resposta da B3 agora. Mantidos valores locais.', 'amber');
-      }
-    }
-
-    /**
-     * Exporta JSON para clipboard (via execCommand) + download de arquivo
-     */
-    function exportBackupJson() {
-      const jsonStr = JSON.stringify(state, null, 2);
-
-      const ta = document.createElement('textarea');
-      ta.value = jsonStr;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand('copy');
-      } catch (e) {}
-      document.body.removeChild(ta);
-
-      try {
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `carteira-ia-fiis-${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (e) {}
-
-      showToast('Backup JSON copiado e baixado!', 'emerald');
-    }
-
-    function toggleImportBox() {
-      const box = document.getElementById('import-json-box');
-      box.classList.toggle('hidden');
-    }
-
-    function applyImportedJsonText() {
-      const raw = document.getElementById('import-json-textarea').value.trim();
-      if (!raw) {
-        showToast('Cole o JSON antes de restaurar.', 'amber');
-        return;
-      }
-      processImportedJson(raw);
-    }
-
-    function importJsonFromFile(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        processImportedJson(String(e.target?.result || ''));
-      };
-      reader.readAsText(file);
-    }
-
-    function processImportedJson(rawJson) {
-      try {
-        const parsed = JSON.parse(rawJson);
-        if (!parsed || !parsed.funds) throw new Error('Formato inválido');
-
-        state = sanitizeState(parsed);
-        saveToStorage();
-
-        document.getElementById('daily-amount-input').value = state.dailyAmount.toFixed(2);
-        renderSettingsForm();
-        triggerAiAnalysis(false);
-        scheduleBackgroundSync();
-        document.getElementById('import-json-box').classList.add('hidden');
-        showToast('Backup restaurado com sucesso!', 'emerald');
-      } catch (e) {
-        showToast('JSON inválido. Verifique o arquivo.', 'amber');
-      }
-    }
-
-    /**
-     * Zerar dados com confirmação em 2 toques (sem window.confirm)
-     */
-    function handleWipeData() {
-      const btn = document.getElementById('btn-wipe-data');
-      if (!wipeArmed) {
-        wipeArmed = true;
-        btn.textContent = 'Toque novamente para confirmar o reset';
-        btn.classList.add('bg-rose-500/35', 'text-white');
-        clearTimeout(wipeTimer);
-        wipeTimer = setTimeout(() => {
-          wipeArmed = false;
-          btn.textContent = 'Zerar Dados';
-          btn.classList.remove('bg-rose-500/35', 'text-white');
-        }, 3500);
-        return;
-      }
-
-      clearTimeout(wipeTimer);
-      wipeArmed = false;
-      btn.textContent = 'Zerar Dados';
-      btn.classList.remove('bg-rose-500/35', 'text-white');
-
-      state = JSON.parse(JSON.stringify(DEFAULT_DATA));
-      saveToStorage();
-      document.getElementById('daily-amount-input').value = state.dailyAmount.toFixed(2);
-      renderSettingsForm();
-      triggerAiAnalysis(false);
-      scheduleBackgroundSync();
-      showToast('Carteira zerada para os padrões iniciais.', 'cyan');
-    }
-
-    // Fecha modal ao pressionar Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeSettingsModal();
-    });
-
-    // Inicialização imediata ao carregar a página
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('daily-amount-input').value = state.dailyAmount.toFixed(2);
-      document.getElementById('top-appscript-url-input').value = appScriptUrl;
-      document.getElementById('modal-appscript-url-input').value = appScriptUrl;
-      updateSheetStatusUI(appScriptUrl ? 'ready' : 'unconfigured');
-      triggerAiAnalysis(false);
-    });
+    initUrlField();
+    renderAll();
   </script>
 </body>
 </html>
